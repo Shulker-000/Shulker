@@ -24,51 +24,37 @@ const LoginPage = () => {
   };
 
   return (
-    <div
-      className="min-h-screen flex items-center justify-center pb-12 pt-4 px-4 sm:px-6 lg:px-8"
-      style={{
-        background: "linear-gradient(135deg, #caf0f8 0%, #90e0ef 100%)",
-      }}
-    >
-      <div className="max-w-md w-full space-y-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center py-4 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8">
         {/* Header */}
         <div className="text-center">
           <div className="flex justify-center">
-            <div className="relative p-0">
-              <img
-                src="/LogoIcon.svg"
-                alt="Logo"
-                className="h-40 w-40 pb-0 mb-0"
-              />
-              <div className="absolute -inset-1 bg-gradient-to-br from-blue-400 to-blue-600 rounded-xl opacity-0 transition-opacity duration-300"></div>
+            <div className="relative">
+              <img src="/LogoIcon.svg" alt="Logo" className="h-32 w-32" />
             </div>
           </div>
-          <h2
-            className="text-2xl mt-0 sm:text-3xl font-bold mb-2"
-            style={{ color: "#03045e" }}
-          >
+          <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
             Welcome Back!
           </h2>
-          <p className="text-base sm:text-lg" style={{ color: "#023e8a" }}>
+          <p className="text-xl text-gray-600 leading-relaxed">
             Sign in to your CogniMeet account
           </p>
         </div>
 
         {/* Login Form */}
-        <div className="bg-white rounded-2xl shadow-2xl p-6 sm:p-8 backdrop-blur-sm bg-opacity-95">
+        <div className="bg-white rounded-xl shadow-lg border border-blue-100 p-8 hover:shadow-xl transition-all duration-300">
           <div className="space-y-6">
             {/* Email Field */}
             <div>
               <label
                 htmlFor="email"
-                className="block text-sm font-medium mb-2"
-                style={{ color: "#03045e" }}
+                className="block text-sm font-medium text-gray-900 mb-2"
               >
                 Email Address
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Mail className="h-5 w-5" style={{ color: "#0096c7" }} />
+                  <Mail className="h-5 w-5 text-blue-600" />
                 </div>
                 <input
                   id="email"
@@ -77,11 +63,7 @@ const LoginPage = () => {
                   required
                   value={formData.email}
                   onChange={handleInputChange}
-                  className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200"
-                  style={{
-                    color: "#023e8a",
-                    "--tw-ring-color": "#0077b6",
-                  }}
+                  className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all duration-200 text-gray-900"
                   placeholder="john@company.com"
                 />
               </div>
@@ -91,14 +73,13 @@ const LoginPage = () => {
             <div>
               <label
                 htmlFor="password"
-                className="block text-sm font-medium mb-2"
-                style={{ color: "#03045e" }}
+                className="block text-sm font-medium text-gray-900 mb-2"
               >
                 Password
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5" style={{ color: "#0096c7" }} />
+                  <Lock className="h-5 w-5 text-blue-600" />
                 </div>
                 <input
                   id="password"
@@ -107,11 +88,7 @@ const LoginPage = () => {
                   required
                   value={formData.password}
                   onChange={handleInputChange}
-                  className="block w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200"
-                  style={{
-                    color: "#023e8a",
-                    "--tw-ring-color": "#0077b6",
-                  }}
+                  className="block w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all duration-200 text-gray-900"
                   placeholder="Enter your password"
                 />
                 <button
@@ -120,15 +97,9 @@ const LoginPage = () => {
                   onClick={() => setShowPassword(!showPassword)}
                 >
                   {showPassword ? (
-                    <EyeOff
-                      className="h-5 w-5 transition-colors duration-200"
-                      style={{ color: "#48cae4" }}
-                    />
+                    <EyeOff className="h-5 w-5 text-gray-400 hover:text-blue-600 transition-colors duration-200" />
                   ) : (
-                    <Eye
-                      className="h-5 w-5 transition-colors duration-200"
-                      style={{ color: "#48cae4" }}
-                    />
+                    <Eye className="h-5 w-5 text-gray-400 hover:text-blue-600 transition-colors duration-200" />
                   )}
                 </button>
               </div>
@@ -143,13 +114,11 @@ const LoginPage = () => {
                   type="checkbox"
                   checked={formData.rememberMe}
                   onChange={handleInputChange}
-                  className="h-4 w-4 rounded border-gray-300 focus:ring-2 transition-colors"
-                  style={{ accentColor: "#0077b6" }}
+                  className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-600 focus:ring-2 transition-colors"
                 />
                 <label
                   htmlFor="rememberMe"
-                  className="ml-2 block text-sm"
-                  style={{ color: "#023e8a" }}
+                  className="ml-2 block text-sm text-gray-600"
                 >
                   Remember me
                 </label>
@@ -157,10 +126,7 @@ const LoginPage = () => {
               <div className="text-sm">
                 <a
                   href="/forgot-password"
-                  className="font-medium hover:underline transition-colors duration-200"
-                  style={{ color: "#0077b6" }}
-                  onMouseEnter={(e) => (e.target.style.color = "#0096c7")}
-                  onMouseLeave={(e) => (e.target.style.color = "#0077b6")}
+                  className="font-medium text-blue-600 hover:text-blue-700 transition-colors duration-200"
                 >
                   Forgot password?
                 </a>
@@ -169,23 +135,11 @@ const LoginPage = () => {
 
             {/* Login Button */}
             <button
-              type="button"
-              onClick={handleSubmit}
-              className="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-lg shadow-lg text-white font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all duration-200 hover:shadow-xl transform hover:-translate-y-0.5"
-              style={{
-                background: "linear-gradient(135deg, #0077b6 0%, #0096c7 100%)",
-                "--tw-ring-color": "#48cae4",
-              }}
-              onMouseEnter={(e) =>
-                (e.target.style.background =
-                  "linear-gradient(135deg, #023e8a 0%, #0077b6 100%)")
-              }
-              onMouseLeave={(e) =>
-                (e.target.style.background =
-                  "linear-gradient(135deg, #0077b6 0%, #0096c7 100%)")
-              }
+              type="submit"
+              className="w-full flex justify-center items-center bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-xl text-lg font-semibold shadow-lg transition-all duration-200 hover:shadow-xl hover:-translate-y-0.5"
             >
-              Sign In <ArrowRight className="ml-2 w-5 h-5" />
+              Sign In
+              <ArrowRight className="ml-2 w-5 h-5" />
             </button>
 
             {/* Divider */}
@@ -194,7 +148,7 @@ const LoginPage = () => {
                 <div className="w-full border-t border-gray-300" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white" style={{ color: "#023e8a" }}>
+                <span className="px-2 bg-white text-gray-600">
                   Or sign in with
                 </span>
               </div>
@@ -204,17 +158,7 @@ const LoginPage = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <button
                 type="button"
-                className="w-full inline-flex justify-center py-2.5 px-4 rounded-lg border border-gray-300 bg-white text-sm font-medium transition-all duration-200 hover:shadow-md transform hover:-translate-y-0.5"
-                style={{ color: "#023e8a" }}
-                onMouseEnter={(e) => {
-                  e.target.style.background =
-                    "linear-gradient(135deg, #caf0f8 0%, #ade8f4 50%)";
-                  e.target.style.borderColor = "#48cae4";
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.background = "white";
-                  e.target.style.borderColor = "#d1d5db";
-                }}
+                className="w-full inline-flex justify-center py-2.5 px-4 rounded-lg border-2 border-gray-300 hover:border-blue-600 bg-white text-gray-700 hover:text-blue-600 text-sm font-medium transition-all duration-200 hover:shadow-md transform hover:-translate-y-0.5"
               >
                 <svg className="w-5 h-5" viewBox="0 0 24 24">
                   <path
@@ -238,17 +182,7 @@ const LoginPage = () => {
               </button>
               <button
                 type="button"
-                className="w-full inline-flex justify-center py-2.5 px-4 rounded-lg border border-gray-300 bg-white text-sm font-medium transition-all duration-200 hover:shadow-md transform hover:-translate-y-0.5"
-                style={{ color: "#023e8a" }}
-                onMouseEnter={(e) => {
-                  e.target.style.background =
-                    "linear-gradient(135deg, #caf0f8 0%, #ade8f4 50%)";
-                  e.target.style.borderColor = "#48cae4";
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.background = "white";
-                  e.target.style.borderColor = "#d1d5db";
-                }}
+                className="w-full inline-flex justify-center py-2.5 px-4 rounded-lg border-2 border-gray-300 hover:border-blue-600 bg-white text-gray-700 hover:text-blue-600 text-sm font-medium transition-all duration-200 hover:shadow-md transform hover:-translate-y-0.5"
               >
                 <svg
                   className="w-5 h-5"
@@ -264,14 +198,11 @@ const LoginPage = () => {
 
           {/* Sign Up Link */}
           <div className="mt-6 text-center">
-            <p className="text-sm" style={{ color: "#023e8a" }}>
+            <p className="text-sm text-gray-600">
               Don't have an account?{" "}
               <a
                 href="/register"
-                className="font-medium hover:underline transition-colors duration-200"
-                style={{ color: "#0077b6" }}
-                onMouseEnter={(e) => (e.target.style.color = "#0096c7")}
-                onMouseLeave={(e) => (e.target.style.color = "#0077b6")}
+                className="font-medium text-blue-600 hover:text-blue-700 transition-colors duration-200"
               >
                 Sign up here
               </a>
