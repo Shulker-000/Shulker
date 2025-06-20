@@ -9,6 +9,7 @@ import WhiteBoard from './components/WhiteBoard'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import Contact from './pages/Contact'
+import NotFoundPage from './pages/NotFoundPage'
 
 const AppWrapper = () => {
   const location = useLocation()
@@ -29,6 +30,7 @@ const AppWrapper = () => {
         <Route path="/signup" element={<RegisterPage />} />
         <Route path="/whiteboard" element={<WhiteBoard />} />
         <Route path="/contact" element={<Contact />} />
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
       {!shouldHideNavbarFooter && <Footer />}
     </>
