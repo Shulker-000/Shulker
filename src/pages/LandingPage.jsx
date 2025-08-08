@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Sparkles, ClipboardList, Users, ChevronDown } from "lucide-react";
 
 // --- SVG Icons (Self-contained for simplicity) ---
 const BrainCircuit = (props) => (
@@ -163,9 +164,11 @@ const App = () => {
   );
 };
 
-
 const HeroSection = () => (
-  <section className="relative flex items-center justify-center text-white" style={{ minHeight: 'calc(100vh - 4rem)' }}>
+  <section
+    className="relative flex items-center justify-center text-white"
+    style={{ minHeight: "calc(100vh - 4rem)" }}
+  >
     <div className="absolute inset-0 z-0">
       <img
         src="https://images.unsplash.com/photo-1521737604893-d14cc237f11d?q=80&w=2684&auto=format&fit=crop"
@@ -192,30 +195,118 @@ const HeroSection = () => (
           The AI assistant that transcribes, summarizes, and automates your
           calls. Focus on the conversation—we'll handle the rest.
         </p>
-        <div className="mt-10 flex flex-col sm:flex-row justify-center items-center gap-4">
-          <Button href="/signup" variant="primary" size="large">
+        <div className="mt-10 flex flex-col transition-transform sm:flex-row justify-center items-center gap-4">
+          <Button href="/signup" variant="primary" size="large" className=" hover:scale-110">
             Get Started Free <ArrowRight className="ml-2 w-5 h-5" />
           </Button>
-          <p className="text-sm text-gray-400 mt-2 sm:mt-0">
-            No credit card required.
-          </p>
         </div>
       </motion.div>
     </div>
   </section>
 );
 
+// const CreativeFeaturesSection = () => {
+//   const [activeTab, setActiveTab] = useState(0);
+//   const activeFeature = features[activeTab];
+//   const tabContentVariants = {
+//     initial: { opacity: 0, x: 20 },
+//     enter: { opacity: 1, x: 0, transition: { duration: 0.4, ease: "easeOut" } },
+//     exit: { opacity: 0, x: -20, transition: { duration: 0.3, ease: "easeIn" } },
+//   };
+
+//   return (
+//     <section id="features" className="bg-slate-50 py-20 lg:pt-12 lg:pb-6 px-6">
+//       <motion.div
+//         initial="hidden"
+//         whileInView="visible"
+//         viewport={{ once: true, amount: 0.2 }}
+//         variants={sectionVariants}
+//         className="text-center max-w-3xl mx-auto"
+//       >
+//         <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
+//           A Smarter Way to Meet
+//         </h2>
+//         <p className="mt-4 text-lg text-gray-600">
+//           Shulker is more than an assistant; it's your new competitive
+//           advantage. Explore how we transform every conversation.
+//         </p>
+//       </motion.div>
+
+//       <div className="mt-16 w-full max-w-7xl mx-auto">
+//         <div className="flex flex-col md:flex-row gap-10 lg:gap-16 items-start">
+//           <div className="w-full md:w-1/3 flex md:flex-col justify-center md:justify-start space-y-2">
+//             {features.map((feature, index) => (
+//               <button
+//                 key={feature.title}
+//                 onClick={() => setActiveTab(index)}
+//                 className={`w-4/5 text-left p-4 m-5 -ml- rounded-lg transition-all duration-300 flex items-center gap-4 ${
+//                   activeTab === index
+//                     ? "bg-white text-indigo-700 shadow-md scale-105"
+//                     : "text-gray-500 hover:bg-white/70 hover:text-gray-900"
+//                 }`}
+//               >
+//                 <div className={`p-2 rounded-md ${feature.bgColor}`}>
+//                   <feature.icon className={`w-6 h-6 ${feature.color}`} />
+//                 </div>
+//                 <span className="font-semibold text-base">{feature.title}</span>
+//               </button>
+//             ))}
+//           </div>
+//           <div className="relative w-full md:w-2/3 min-h-[450px]">
+//             <AnimatePresence mode="wait">
+//               <motion.div
+//                 key={activeTab}
+//                 variants={tabContentVariants}
+//                 initial="initial"
+//                 animate="enter"
+//                 exit="exit"
+//                 className="absolute inset-0 w-full h-full"
+//               >
+//                 <div className="w-full h-full grid grid-cols-1 lg:grid-cols-5 gap-8 lg:gap-12 items-center">
+//                   <div className="lg:col-span-3 w-full h-80 rounded-2xl overflow-hidden shadow-2xl group">
+//                     <img
+//                       src={activeFeature.image}
+//                       alt={activeFeature.title}
+//                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+//                       onError={(e) => {
+//                         e.target.onerror = null;
+//                         e.target.src =
+//                           "https://placehold.co/800x600/cccccc/FFFFFF?text=Image+Not+Found";
+//                       }}
+//                     />
+//                   </div>
+//                   <div className="lg:col-span-2">
+//                     <p className="text-lg md:text-xl font-medium text-gray-600 leading-relaxed">
+//                       {activeFeature.description}
+//                     </p>
+//                   </div>
+//                 </div>
+//               </motion.div>
+//             </AnimatePresence>
+//           </div>
+//         </div>
+//       </div>
+//     </section>
+//   );
+// };
+
+
+
+
 const CreativeFeaturesSection = () => {
   const [activeTab, setActiveTab] = useState(0);
-  const activeFeature = features[activeTab];
+
+  // Variants for the desktop tab content (unchanged)
   const tabContentVariants = {
     initial: { opacity: 0, x: 20 },
     enter: { opacity: 1, x: 0, transition: { duration: 0.4, ease: "easeOut" } },
     exit: { opacity: 0, x: -20, transition: { duration: 0.3, ease: "easeIn" } },
   };
 
+  // The 'accordionContentVariants' are no longer needed, replaced by the layout prop.
+
   return (
-    <section id="features" className="bg-slate-50 py-20 lg:py-28 px-6">
+    <section id="features" className="bg-slate-50 py-22 lg:pt-12 lg:pb-6 px-6">
       <motion.div
         initial="hidden"
         whileInView="visible"
@@ -233,13 +324,16 @@ const CreativeFeaturesSection = () => {
       </motion.div>
 
       <div className="mt-16 w-full max-w-7xl mx-auto">
-        <div className="flex flex-col md:flex-row gap-10 lg:gap-16 items-start">
+
+        {/* Desktop View */}
+
+        <div className="hidden md:flex flex-col md:flex-row gap-10 lg:gap-16 items-start">
           <div className="w-full md:w-1/3 flex md:flex-col justify-center md:justify-start space-y-2">
             {features.map((feature, index) => (
               <button
                 key={feature.title}
-                onClick={() => setActiveTab(index)}
-                className={`w-full text-left p-4 rounded-lg transition-all duration-300 flex items-center gap-4 ${
+                onClick={() => setActiveTab(index)} // Desktop keeps the original logic
+                className={`w-4/5 text-left p-4 rounded-lg transition-all duration-300 flex items-center gap-4 ${
                   activeTab === index
                     ? "bg-white text-indigo-700 shadow-md scale-105"
                     : "text-gray-500 hover:bg-white/70 hover:text-gray-900"
@@ -254,6 +348,7 @@ const CreativeFeaturesSection = () => {
           </div>
           <div className="relative w-full md:w-2/3 min-h-[450px]">
             <AnimatePresence mode="wait">
+
               <motion.div
                 key={activeTab}
                 variants={tabContentVariants}
@@ -265,19 +360,14 @@ const CreativeFeaturesSection = () => {
                 <div className="w-full h-full grid grid-cols-1 lg:grid-cols-5 gap-8 lg:gap-12 items-center">
                   <div className="lg:col-span-3 w-full h-80 rounded-2xl overflow-hidden shadow-2xl group">
                     <img
-                      src={activeFeature.image}
-                      alt={activeFeature.title}
+                      src={features[activeTab]?.image}
+                      alt={features[activeTab]?.title}
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                      onError={(e) => {
-                        e.target.onerror = null;
-                        e.target.src =
-                          "https://placehold.co/800x600/cccccc/FFFFFF?text=Image+Not+Found";
-                      }}
                     />
                   </div>
                   <div className="lg:col-span-2">
                     <p className="text-lg md:text-xl font-medium text-gray-600 leading-relaxed">
-                      {activeFeature.description}
+                      {features[activeTab]?.description}
                     </p>
                   </div>
                 </div>
@@ -285,17 +375,71 @@ const CreativeFeaturesSection = () => {
             </AnimatePresence>
           </div>
         </div>
+
+        {/* Mobile View */}
+
+        <div className="md:hidden w-full flex flex-col gap-3">
+          {features.map((feature, index) => {
+            const isOpen = activeTab === index;
+            return (
+              <motion.div
+                key={feature.title}
+                layout // ✨ This prop enables smooth, automatic layout animations!
+                transition={{ duration: 0.3, ease: [0.32, 0.72, 0, 1] }}
+                className="bg-white/80 rounded-lg shadow-sm overflow-hidden"
+              >
+                <motion.button
+                  layout // Ensures the button itself animates smoothly
+                  onClick={() => setActiveTab(isOpen ? null : index)} // ✨ Click again to close
+                  className="w-full p-4 text-left flex justify-between items-center"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className={`p-2 rounded-md ${feature.bgColor}`}>
+                      <feature.icon className={`w-6 h-6 ${feature.color}`} />
+                    </div>
+                    <span className="font-semibold text-base text-gray-800">{feature.title}</span>
+                  </div>
+                  <motion.div
+                    animate={{ rotate: isOpen ? 180 : 0 }} // Animate chevron rotation
+                    transition={{ duration: 0.3 }}
+                  >
+                    <ChevronDown className="w-5 h-5 text-gray-500" aria-hidden="true" />
+                  </motion.div>
+                </motion.button>
+                <AnimatePresence>
+                  {isOpen && (
+                    <motion.div
+                      key="content"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1, transition: { delay: 0.1, duration: 0.3 } }}
+                      exit={{ opacity: 0, transition: { duration: 0.2 } }}
+                      className="px-4 pb-4" // Padding moved here from an inner div
+                    >
+                      <div className="mt-2 mb-4 w-full h-56 rounded-lg overflow-hidden shadow-lg group">
+                        <img src={feature.image} alt={feature.title} className="w-full h-full object-cover"/>
+                      </div>
+                      <p className="text-gray-600">{feature.description}</p>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.div>
+            );
+          })}
+        </div>
       </div>
     </section>
   );
 };
 
-// --- UPDATED CTA Section ---
+
 const CTASection = () => (
-  <section 
-    id="contact" 
+  <section
+    id="contact"
     className="relative bg-cover bg-center py-24 sm:py-32"
-    style={{ backgroundImage: "url('https://images.unsplash.com/photo-1552664730-d307ca884978?q=80&w=2670&auto=format&fit=crop')" }}
+    style={{
+      backgroundImage:
+        "url('https://images.unsplash.com/photo-1552664730-d307ca884978?q=80&w=2670&auto=format&fit=crop')",
+    }}
   >
     {/* Overlay for text readability */}
     <div className="absolute inset-0 bg-gray-900/60"></div>
@@ -315,7 +459,12 @@ const CTASection = () => (
           the power of perfect recall and automated actions.
         </p>
         <div className="mt-10">
-          <Button href="/signup" variant="primary" size="large" className="text-indigo-600 hover:bg-gray-100">
+          <Button
+            href="/signup"
+            variant="primary"
+            size="large"
+            className="text-indigo-600 hover:bg-gray-100"
+          >
             Claim Your Free Account Now
           </Button>
         </div>
