@@ -36,7 +36,7 @@ const Footer = () => {
             <div className="flex items-center mb-6">
               <img src="/LogoIcon.svg" className="h-18 w-18" alt="" />
 
-              <span className="text-xl font-bold text-white">CogniMeet</span>
+              <span className="text-xl font-bold text-white">Shulker</span>
             </div>
             <p className="text-gray-400 mb-6 max-w-md leading-relaxed">
               Transform your meetings with intelligent video conferencing
@@ -205,7 +205,7 @@ const Footer = () => {
             {/* Copyright and Back to Top */}
             <div className="flex items-center space-x-4">
               <div className="text-gray-500 text-sm text-center lg:text-right">
-                © {currentYear} CogniMeet. All rights reserved.
+                © {currentYear} Shulker. All rights reserved.
               </div>
               <button
                 onClick={scrollToTop}
