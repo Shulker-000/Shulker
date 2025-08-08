@@ -1,5 +1,5 @@
 import React from 'react'
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom'
 
 import AboutPage from './pages/AboutPage'
 import LandingPage from './pages/LandingPage'
@@ -15,7 +15,7 @@ const AppWrapper = () => {
   const location = useLocation()
 
   // Routes where Navbar should be hidden
-  const hideNavbarFooterRoutes = ['/whiteboard']
+  const hideNavbarFooterRoutes = ['/whiteboard', '/login', '/signup', '/register', '/notfound']
   const shouldHideNavbarFooter = hideNavbarFooterRoutes.includes(location.pathname)
 
   return (
@@ -30,7 +30,8 @@ const AppWrapper = () => {
         <Route path="/signup" element={<RegisterPage />} />
         <Route path="/whiteboard" element={<WhiteBoard />} />
         <Route path="/contact" element={<Contact />} />
-        <Route path="*" element={<NotFoundPage />} />
+        <Route path="/notfound" element={<NotFoundPage />} />
+        <Route path="*" element={<Navigate to="/notfound" replace />} />
       </Routes>
       {!shouldHideNavbarFooter && <Footer />}
     </>
