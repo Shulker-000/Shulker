@@ -1,0 +1,37 @@
+.Toastify__toast {
+  font-family: "Arial", sans-serif;
+  background: #333;
+  color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+  padding: 16px;
+}
+
+/* This targets the body/content of the toast */
+.Toastify__toast-body {
+  /* You can add specific styles for the content here if needed */
+  font-size: 1rem;
+}
+
+/* Style for different toast types */
+.Toastify__toast--success {
+  background: #07bc0c; /* A nice green */
+}
+
+.Toastify__toast--error {
+  background: #e74c3c; /* A nice red */
+}
+
+.Toastify__toast--info {
+  background: #3498db; /* A nice blue */
+}
+
+/* You can also style the close button and progress bar if you use them */
+.Toastify__close-button {
+  color: #fff;
+  opacity: 0.7;
+}
+
+.Toastify__close-button:hover {
+  opacity: 1;
+}
