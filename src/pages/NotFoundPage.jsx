@@ -1,6 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
-import NF404 from "./../assets/images/404.png";
+import NF404 from "./../assets/images/pages/404.png";
 import { Home, ArrowLeft } from "lucide-react";
 
 
