@@ -10,6 +10,8 @@ import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import Contact from './pages/Contact'
 import NotFoundPage from './pages/NotFoundPage'
+import ForgotPassword from './pages/ForgotPassword'
+import ResetPassword from './pages/resetPassword/[token]'
 
 const AppWrapper = () => {
   const location = useLocation()
@@ -31,6 +33,8 @@ const AppWrapper = () => {
         <Route path="/whiteboard" element={<WhiteBoard />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/notfound" element={<NotFoundPage />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
         <Route path="*" element={<Navigate to="/notfound" replace />} />
       </Routes>
       {!shouldHideNavbarFooter && <Footer />}

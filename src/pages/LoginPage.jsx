@@ -1,16 +1,22 @@
 import React, { useState } from "react";
+// Import useNavigate for programmatic navigation
+import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+// Import toast for notifications
+import { toast } from "react-toastify";
 import { Mail, Lock, Eye, EyeOff, ArrowRight } from "lucide-react";
 import { FaGoogle, FaXTwitter } from "react-icons/fa6";
+import logInImage from "../assets/images/pages/signIn.png";
 
 const Login = () => {
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
-    rememberMe: false,
   });
   const [errors, setErrors] = useState({});
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -47,56 +53,69 @@ const Login = () => {
     return newErrors;
   };
 
-  // const handleSubmit = (e) => {
-  //   e.preventDefault();
-  //   const formErrors = validateForm();
-  //   if (Object.keys(formErrors).length > 0) {
-  //     setErrors(formErrors);
-  //     return;
-  //   }
-  //   setErrors({});
-  //   console.log("Login attempt:", formData);
-  //   // TODO: Add your authentication logic here
-  // };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     const formErrors = validateForm();
     if (Object.keys(formErrors).length > 0) {
       setErrors(formErrors);
+      // Show the first specific validation error in a toast
+      toast.warn(Object.values(formErrors)[0]);
       return;
     }
     setErrors({});
+    setIsLoading(true);
 
     try {
-      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/v1/users/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: formData.email,
-          password: formData.password,
-        }),
-      });
+      const res = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/v1/users/login`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: formData.email,
+            password: formData.password,
+          }),
+        }
+      );
 
-      const data = await res.json();
+      // Robustly parse JSON from the response, handling non-JSON errors gracefully
+      const responseData = await res.json().catch(() => null);
 
-      if (!res.ok) {
-        // API returned error
-        setErrors({ api: data.message || "Login failed" });
-        return;
+      if (res.ok) {
+        // On success, store the token and show a success toast
+        // Note: Assuming the token is at `responseData.token` as per original code.
+        // Adjust if your API response structure is different (e.g., `responseData.data.token`).
+        if (responseData?.token) {
+          localStorage.setItem("authToken", responseData.token);
+        }
+
+        toast.success(
+          responseData?.message || "Login successful! Redirecting..."
+        );
+
+        setTimeout(() => {
+          navigate("/dashboard");
+        }, 1500);
+      } else {
+        // On failure, show a specific error toast based on the response
+        const errorMessage = responseData?.message;
+        if (res.status === 401 || res.status === 404) {
+          toast.error(
+            errorMessage ||
+              "Invalid credentials. Please check your email and password."
+          );
+        } else {
+          toast.error(errorMessage || "Login failed. Please try again.");
+        }
       }
-
-      // Store token (modify if API sends different structure)
-      if (data.token) {
-        localStorage.setItem("authToken", data.token);
-      }
-
-      // Redirect or perform success actions
-      console.log("Login successful", data);
-      window.location.href = "/dashboard"; // adjust as needed
     } catch (err) {
-      console.error("Login error:", err);
-      setErrors({ api: "Something went wrong. Please try again later." });
+      // For network or other critical errors, show a clear network error toast
+      console.error("Login network error:", err);
+      toast.error(
+        "A network error occurred. Please check your connection and try again."
+      );
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -124,14 +143,9 @@ const Login = () => {
             className="w-full max-w-md bg-white/10 backdrop-blur-md rounded-2xl p-8 shadow-lg z-10"
           >
             <img
-              src="trial1.png"
-              alt="Shulker promotional banner"
-              className="w-full h-auto rounded-lg object-cover animate-pulse"
-              onError={(e) => {
-                e.target.onerror = null;
-                e.target.src =
-                  "https://placehold.co/600x400/cccccc/ffffff?text=Image+Not+Found";
-              }}
+              src={logInImage}
+              alt="SHULKER"
+              className="w-full h-auto rounded-lg object-cover"
             />
             <h1 className="mt-6 text-4xl font-bold tracking-tight">
               Welcome Back!
@@ -238,40 +252,26 @@ const Login = () => {
 
               <motion.div
                 variants={itemVariants}
-                className="flex items-center justify-between"
+                className="flex items-center justify-end"
               >
-                <div className="flex items-center">
-                  <input
-                    id="rememberMe"
-                    name="rememberMe"
-                    type="checkbox"
-                    checked={formData.rememberMe}
-                    onChange={handleInputChange}
-                    className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                  />
-                  <label
-                    htmlFor="rememberMe"
-                    className="ml-2 block text-sm text-gray-700"
-                  >
-                    Remember me
-                  </label>
-                </div>
                 <div className="text-sm">
-                  <a
-                    href="/forgot-password"
+                  <Link
+                    to="/forgot-password"
                     className="font-medium text-indigo-600 hover:underline"
                   >
                     Forgot password?
-                  </a>
+                  </Link>
                 </div>
               </motion.div>
 
               <motion.div variants={itemVariants} className="pt-2">
                 <button
                   type="submit"
-                  className="w-full flex justify-center items-center bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-lg text-base font-semibold shadow-lg hover:shadow-indigo-500/40 transition-all duration-300 transform hover:-translate-y-0.5 focus:outline-none focus:ring-4 focus:ring-indigo-500/50"
+                  disabled={isLoading}
+                  className="w-full flex justify-center items-center bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-lg text-base font-semibold shadow-lg hover:shadow-indigo-500/40 transition-all duration-300 transform hover:-translate-y-0.5 focus:outline-none focus:ring-4 focus:ring-indigo-500/50 disabled:bg-indigo-400 disabled:cursor-not-allowed"
                 >
-                  Sign In <ArrowRight className="ml-2 w-5 h-5" />
+                  {isLoading ? "Signing In..." : "Sign In"}
+                  {!isLoading && <ArrowRight className="ml-2 w-5 h-5" />}
                 </button>
               </motion.div>
 
@@ -303,12 +303,6 @@ const Login = () => {
                   <FaXTwitter /> <span className="ml-2">X</span>
                 </button>
               </motion.div>
-
-              {errors.api && (
-                <p className="mt-2 text-sm text-red-600 text-center">
-                  {errors.api}
-                </p>
-              )}
             </form>
 
             <motion.p
@@ -316,12 +310,12 @@ const Login = () => {
               className="pt-6 text-center text-sm text-gray-600"
             >
               Don't have an account?{" "}
-              <a
-                href="/register"
+              <Link
+                to="/register"
                 className="font-medium text-indigo-600 hover:underline"
               >
                 Sign up here
-              </a>
+              </Link>
             </motion.p>
           </motion.div>
         </div>
