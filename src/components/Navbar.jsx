@@ -194,7 +194,7 @@ const Navbar = () => {
   
   // Demo state - replace with your actual auth context/logic
   const [isAuthenticated, setIsAuthenticated] = useState(true);
-  const [user, setUser] = useState({ name: 'John Doe', email: 'john.doe.very.long.email@example.com' });
+  const [user, setUser] = useState({ name: 'User', email: 'user.one.very.long.email@example.com' });
 
   // Handle scroll effect
   useEffect(() => {
