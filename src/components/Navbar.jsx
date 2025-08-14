@@ -1,19 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Menu, X, ChevronDown, User, Settings, LogOut, Home, Info, Mail, Building, Users } from 'lucide-react';
-
-// NOTE: For a real-world application, it's highly recommended to use a dedicated routing
-// library like 'react-router-dom' or the router from a framework like Next.js.
-// This custom Link component is kept to match the original request's functionality.
-const Link = ({ href, children, ...props }) => {
-  const handleClick = (e) => {
-    e.preventDefault();
-    window.history.pushState({}, '', href);
-    const navEvent = new PopStateEvent('popstate');
-    window.dispatchEvent(navEvent);
-    if (props.onClick) props.onClick(e);
-  };
-  return <a href={href} onClick={handleClick} {...props}>{children}</a>;
-};
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Menu, X, ChevronDown, User, Settings, LogOut, Home, Info, Mail, Building, Users, Loader2 } from 'lucide-react';
+import { useSelector, useDispatch } from 'react-redux';
+import { logout } from './../features/authSlice'; // Import the logout action from your authSlice
 
 // Custom hook to detect clicks outside a referenced element
 const useClickOutside = (ref, callback) => {
@@ -32,10 +21,10 @@ const useClickOutside = (ref, callback) => {
 const navItems = [
   { id: 'home', label: 'Home', icon: Home, route: '/' },
   { id: 'about', label: 'About', icon: Info, route: '/about' },
-  { 
-    id: 'services', 
-    label: 'Services', 
-    icon: Building, 
+  {
+    id: 'services',
+    label: 'Services',
+    icon: Building,
     route: '/services',
     dropdownItems: [
       { id: 'services-consulting', label: 'Consulting', icon: Users, route: '/services/consulting' },
@@ -55,11 +44,10 @@ const authRoutes = {
 
 // --- Reusable Child Components ---
 
-// Renders a single navigation item (link or dropdown)
-const NavItem = ({ item, currentPath, onLinkClick }) => {
+const NavItem = ({ item, currentPath, onLinkClick, isMobile = false }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
-  
+
   const hasDropdown = Array.isArray(item.dropdownItems) && item.dropdownItems.length > 0;
   const isActive = currentPath.startsWith(item.route) && (currentPath === '/' ? item.route === '/' : true);
 
@@ -70,8 +58,13 @@ const NavItem = ({ item, currentPath, onLinkClick }) => {
     if (onLinkClick) onLinkClick(e);
   };
 
-  const navLinkClasses = `flex items-center px-4 py-2 text-sm font-medium transition-all duration-200 rounded-lg hover:bg-gray-50 hover:scale-105 active:scale-95 ${isActive ? 'text-blue-600 bg-blue-50 shadow-sm' : 'text-gray-700 hover:text-blue-600'}`;
-  const dropdownItemClasses = "flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 hover:text-blue-600 hover:bg-blue-50 transition-colors duration-200";
+  const navLinkClasses = isMobile
+    ? `flex items-center w-full px-4 py-3 text-lg font-medium rounded-xl transition-colors duration-200 ${isActive ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-100 hover:text-blue-600'}`
+    : `flex items-center px-4 py-2 text-sm font-medium transition-all duration-200 rounded-lg hover:bg-gray-50 hover:scale-105 active:scale-95 ${isActive ? 'text-blue-600 bg-blue-50 shadow-sm' : 'text-gray-700 hover:text-blue-600'}`;
+  
+  const dropdownItemClasses = isMobile
+    ? "flex items-center w-full text-left px-6 py-3 text-base text-gray-700 hover:text-blue-600 hover:bg-blue-50 transition-colors duration-200"
+    : "flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 hover:text-blue-600 hover:bg-blue-50 transition-colors duration-200";
 
   return (
     <div className="relative" ref={dropdownRef}>
@@ -82,21 +75,23 @@ const NavItem = ({ item, currentPath, onLinkClick }) => {
           aria-expanded={isDropdownOpen}
           aria-controls={`dropdown-${item.id}`}
         >
-          <item.icon className="h-4 w-4 mr-2" />
+          <item.icon className={`h-5 w-5 ${isMobile ? 'mr-4' : 'mr-2'}`} />
           {item.label}
-          <ChevronDown className={`ml-1 h-4 w-4 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} />
+          <ChevronDown className={`ml-auto h-5 w-5 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} />
         </button>
       ) : (
-        <Link href={item.route} onClick={handleLinkClick} className={navLinkClasses}>
-          <item.icon className="h-4 w-4 mr-2" />
+        <Link to={item.route} onClick={handleLinkClick} className={navLinkClasses}>
+          <item.icon className={`h-5 w-5 ${isMobile ? 'mr-4' : 'mr-2'}`} />
           {item.label}
         </Link>
       )}
 
       {hasDropdown && isDropdownOpen && (
-        <div id={`dropdown-${item.id}`} className="absolute top-full left-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 animate-in fade-in slide-in-from-top-2 duration-200">
+        <div id={`dropdown-${item.id}`} className={isMobile
+          ? "w-full bg-gray-50 rounded-lg mt-2 py-2"
+          : "absolute top-full left-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 animate-in fade-in slide-in-from-top-2 duration-200"}>
           {item.dropdownItems.map((dropdownItem) => (
-            <Link key={dropdownItem.id} href={dropdownItem.route} onClick={handleLinkClick} className={dropdownItemClasses}>
+            <Link key={dropdownItem.id} to={dropdownItem.route} onClick={handleLinkClick} className={dropdownItemClasses}>
               {dropdownItem.icon && <dropdownItem.icon className="h-4 w-4 mr-2" />}
               {dropdownItem.label}
             </Link>
@@ -107,35 +102,33 @@ const NavItem = ({ item, currentPath, onLinkClick }) => {
   );
 };
 
-// Renders the authentication buttons (Login/Sign Up)
 const AuthButtons = ({ isMobile = false }) => {
   if (isMobile) {
     return (
-      <div className="border-t border-gray-200 pt-4 pb-3 space-y-3">
-        <Link href={authRoutes.login} className="block w-full text-left px-4 py-3 font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-lg">Log In</Link>
-        <Link href={authRoutes.signup} className="block w-full text-center bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg font-medium shadow-sm transition-all">Sign Up</Link>
+      <div className="border-t border-gray-200 pt-4 pb-3 space-y-3 px-4">
+        <Link to={authRoutes.login} className="block w-full text-center px-4 py-3 font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors">Log In</Link>
+        <Link to={authRoutes.signup} className="block w-full text-center bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-xl font-medium shadow-md transition-all">Sign Up</Link>
       </div>
     );
   }
   return (
     <>
-      <Link href={authRoutes.login} className="text-gray-700 hover:text-blue-600 px-4 py-2 text-sm font-medium transition-colors hover:bg-gray-50 rounded-lg">
+      <Link to={authRoutes.login} className="text-gray-700 hover:text-blue-600 px-4 py-2 text-sm font-medium transition-colors hover:bg-gray-50 rounded-lg">
         Log In
       </Link>
-      <Link href={authRoutes.signup} className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg text-sm font-medium shadow-sm transition-all hover:shadow-md hover:scale-105 active:scale-95">
+      <Link to={authRoutes.signup} className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg text-sm font-medium shadow-sm transition-all hover:shadow-md hover:scale-105 active:scale-95">
         Sign Up
       </Link>
     </>
   );
 };
 
-// Renders the user profile dropdown menu
-const ProfileDropdown = ({ user, onLogout, isMobile = false, onLinkClick }) => {
+const ProfileDropdown = ({ user, onLogout, isMobile = false, onLinkClick, isLoggingOut }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
   useClickOutside(dropdownRef, () => setIsOpen(false));
-  
-  const handleLogout = () => {
+
+  const handleLogoutClick = () => {
     setIsOpen(false);
     onLogout();
   };
@@ -147,14 +140,20 @@ const ProfileDropdown = ({ user, onLogout, isMobile = false, onLinkClick }) => {
 
   if (isMobile) {
     return (
-      <div className="border-t border-gray-200 pt-4 pb-3 space-y-1">
+      <div className="border-t border-gray-200 pt-6 pb-3 space-y-2">
         <div className="px-4 py-2">
-          <p className="text-sm font-medium text-gray-900">{user?.name}</p>
-          <p className="text-xs text-gray-500">{user?.email}</p>
+          <p className="text-lg font-bold text-gray-900">{user?.name}</p>
+          <p className="text-sm text-gray-500">{user?.email}</p>
         </div>
-        <Link href={authRoutes.dashboard} onClick={handleLinkClick} className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg"><Settings className="h-4 w-4 mr-3" />Dashboard</Link>
-        <Link href={authRoutes.profile} onClick={handleLinkClick} className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg"><User className="h-4 w-4 mr-3" />Profile</Link>
-        <button onClick={handleLogout} className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-600 rounded-lg"><LogOut className="h-4 w-4 mr-3" />Logout</button>
+        <Link to={authRoutes.dashboard} onClick={handleLinkClick} className="flex items-center w-full px-4 py-3 text-lg font-medium text-gray-700 hover:bg-gray-100 hover:text-blue-600 rounded-xl"><Settings className="h-5 w-5 mr-4" />Dashboard</Link>
+        <Link to={authRoutes.profile} onClick={handleLinkClick} className="flex items-center w-full px-4 py-3 text-lg font-medium text-gray-700 hover:bg-gray-100 hover:text-blue-600 rounded-xl"><User className="h-5 w-5 mr-4" />Profile</Link>
+        <button onClick={handleLogoutClick} disabled={isLoggingOut} className="flex items-center w-full px-4 py-3 text-lg font-medium text-red-600 hover:bg-red-50 rounded-xl">
+          {isLoggingOut ? (
+            <span className="flex items-center"><Loader2 className="h-5 w-5 mr-4 animate-spin" />Logging Out...</span>
+          ) : (
+            <><LogOut className="h-5 w-5 mr-4" />Logout</>
+          )}
+        </button>
       </div>
     );
   }
@@ -174,10 +173,16 @@ const ProfileDropdown = ({ user, onLogout, isMobile = false, onLinkClick }) => {
             <p className="text-sm font-medium text-gray-900 truncate">{user?.name}</p>
             <p className="text-xs text-gray-500 truncate">{user?.email}</p>
           </div>
-          <Link href={authRoutes.profile} onClick={handleLinkClick} className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600"><User className="h-4 w-4 mr-2" />Profile</Link>
-          <Link href={authRoutes.settings} onClick={handleLinkClick} className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600"><Settings className="h-4 w-4 mr-2" />Settings</Link>
+          <Link to={authRoutes.profile} onClick={handleLinkClick} className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600"><User className="h-4 w-4 mr-2" />Profile</Link>
+          <Link to={authRoutes.settings} onClick={handleLinkClick} className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600"><Settings className="h-4 w-4 mr-2" />Settings</Link>
           <hr className="my-1" />
-          <button onClick={handleLogout} className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50"><LogOut className="h-4 w-4 mr-2" />Logout</button>
+          <button onClick={handleLogoutClick} disabled={isLoggingOut} className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50">
+            {isLoggingOut ? (
+              <span className="flex items-center"><Loader2 className="h-4 w-4 mr-2 animate-spin" />Logging Out...</span>
+            ) : (
+              <><LogOut className="h-4 w-4 mr-2" />Logout</>
+            )}
+          </button>
         </div>
       )}
     </div>
@@ -186,106 +191,165 @@ const ProfileDropdown = ({ user, onLogout, isMobile = false, onLinkClick }) => {
 
 
 // --- Main Navbar Component ---
-
 const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const [currentPath, setCurrentPath] = useState(window.location.pathname);
-  
-  // Demo state - replace with your actual auth context/logic
-  const [isAuthenticated, setIsAuthenticated] = useState(true);
-  const [user, setUser] = useState({ name: 'User', email: 'user.one.very.long.email@example.com' });
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
-  // Handle scroll effect
+  const location = useLocation();
+  const navigate = useNavigate();
+  const currentPath = location.pathname;
+
+  // 1. Use Redux hooks to get state and dispatch
+  const dispatch = useDispatch();
+  const user = useSelector((state) => state.auth.user);
+  const isAuthenticated = !!user; // The user object will be null if not authenticated
+
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 10);
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Handle route changes
   useEffect(() => {
-    const handlePathChange = () => setCurrentPath(window.location.pathname);
-    window.addEventListener('popstate', handlePathChange);
-    return () => window.removeEventListener('popstate', handlePathChange);
-  }, []);
+    if (isMobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isMobileMenuOpen]);
 
   const closeMobileMenu = () => setIsMobileMenuOpen(false);
-
-  const handleLogout = () => {
-    setIsAuthenticated(false);
-    setUser(null);
-    closeMobileMenu();
-    // Navigate home after logout
-    const homeLink = new Link({ href: '/' });
-    homeLink.props.onClick({ preventDefault: () => {} });
-  };
   
-  const toggleAuthState = () => setIsAuthenticated(!isAuthenticated);
+  // 2. Updated Logout Handler to use Redux and the imported action
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    try {
+      const backendUrl = import.meta.env.VITE_BACKEND_URL;
+      const logoutUrl = `${backendUrl}/api/v1/users/logout`;
+
+      const response = await fetch(logoutUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        throw new Error('Logout failed on the server.');
+      }
+
+      // 3. Dispatch the logout action
+      dispatch(logout());
+      
+      closeMobileMenu();
+      navigate('/');
+
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      setIsLoggingOut(false);
+    }
+  };
 
   return (
-    <nav className={`sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b transition-shadow duration-300 ${isScrolled ? 'shadow-md border-gray-200' : 'shadow-sm border-gray-100'}`}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          
-          {/* Logo */}
-          <Link href="/" onClick={closeMobileMenu} className="flex-shrink-0 flex items-center gap-2 group">
-            <img src="/LogoIcon.svg" className='h-8 w-8' alt="Shulker Logo" />
-            <span className="text-xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
-              Shulker
-            </span>
-          </Link>
+    <>
+      <nav className={`sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b transition-shadow duration-300 ${isScrolled ? 'shadow-md border-gray-200' : 'shadow-sm border-gray-100'}`}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
 
-          {/* Desktop Navigation */}
-          <div className="hidden lg:flex items-center space-x-1">
-            {navItems.map((item) => (
-              <NavItem key={item.id} item={item} currentPath={currentPath} onLinkClick={closeMobileMenu} />
-            ))}
-          </div>
+            {/* Logo */}
+            <Link to="/" onClick={closeMobileMenu} className="flex-shrink-0 flex items-center gap-2 group">
+              <img src="/LogoIcon.svg" className='h-8 w-8' alt="Shulker Logo" />
+              <span className="text-xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
+                Shulker
+              </span>
+            </Link>
 
-          {/* Desktop Auth & Profile */}
-          <div className="hidden lg:flex items-center">
-            {isAuthenticated ? (
-              <ProfileDropdown user={user} onLogout={handleLogout} />
-            ) : (
-              <AuthButtons />
-            )}
-          </div>
+            {/* Desktop Navigation */}
+            <div className="hidden lg:flex items-center space-x-1">
+              {navItems.map((item) => (
+                <NavItem key={item.id} item={item} currentPath={currentPath} onLinkClick={closeMobileMenu} />
+              ))}
+            </div>
 
-          {/* Mobile menu button */}
-          <div className="lg:hidden flex items-center">
-             {/* Demo Auth Toggle */}
-            <button onClick={toggleAuthState} className="mr-2 px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded-md">
-                Toggle Auth
-            </button>
-            <button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg"
-              aria-label="Open main menu"
-              aria-expanded={isMobileMenuOpen}
-            >
-              {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-            </button>
+            {/* Desktop Auth & Profile */}
+            <div className="hidden lg:flex items-center">
+              {isAuthenticated ? (
+                // Use the Redux 'user' state directly
+                <ProfileDropdown user={user} onLogout={handleLogout} isLoggingOut={isLoggingOut} />
+              ) : (
+                <AuthButtons />
+              )}
+            </div>
+
+            {/* Mobile menu button */}
+            <div className="lg:hidden flex items-center">
+              <button
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg"
+                aria-label="Open main menu"
+                aria-expanded={isMobileMenuOpen}
+              >
+                {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      </nav>
 
-      {/* Mobile Menu */}
+      {/* Full-page Mobile Menu Overlay */}
       {isMobileMenuOpen && (
-        <div className="lg:hidden bg-white border-t animate-in fade-in slide-in-from-top-4 duration-300">
-          <div className="px-2 pt-2 pb-4 space-y-1">
-            {navItems.map((item) => (
-              <NavItem key={item.id} item={item} currentPath={currentPath} onLinkClick={closeMobileMenu} />
-            ))}
+        <div className="fixed inset-0 z-[51] lg:hidden">
+          {/* Backdrop with translucent blur effect */}
+          <div
+            className="fixed inset-0 bg-gray-800/60 backdrop-blur-md transition-opacity duration-300"
+            onClick={closeMobileMenu}
+            role="button"
+            tabIndex={0}
+            aria-label="Close menu backdrop"
+          />
+          
+          {/* Menu container that slides in from the right */}
+          <div className="fixed top-0 right-0 w-full max-w-sm h-full bg-white shadow-xl transform transition-transform duration-300 ease-out animate-in slide-in-from-right-full">
+            
+            {/* Menu header with logo and close button */}
+            <div className="flex items-center justify-between px-4 h-16 border-b border-gray-200">
+              <Link to="/" onClick={closeMobileMenu} className="flex-shrink-0 flex items-center gap-2">
+                <img src="/LogoIcon.svg" className='h-8 w-8' alt="Shulker Logo" />
+                <span className="text-xl font-bold text-gray-900">Shulker</span>
+              </Link>
+              <button
+                onClick={closeMobileMenu}
+                className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg"
+                aria-label="Close menu"
+              >
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+
+            {/* Mobile navigation items */}
+            <div className="p-4 space-y-1">
+              {navItems.map((item) => (
+                <NavItem key={item.id} item={item} currentPath={currentPath} onLinkClick={closeMobileMenu} isMobile />
+              ))}
+            </div>
+
+            {/* Mobile auth buttons or profile dropdown */}
             {isAuthenticated ? (
-              <ProfileDropdown user={user} onLogout={handleLogout} isMobile onLinkClick={closeMobileMenu} />
+              // Use the Redux 'user' state directly
+              <ProfileDropdown user={user} onLogout={handleLogout} isMobile onLinkClick={closeMobileMenu} isLoggingOut={isLoggingOut} />
             ) : (
               <AuthButtons isMobile />
             )}
           </div>
         </div>
       )}
-    </nav>
+    </>
   );
 };
 

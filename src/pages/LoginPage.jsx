@@ -1,8 +1,8 @@
 import React, { useState } from "react";
-// Import useNavigate for programmatic navigation
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-// Import toast for notifications
+import { useDispatch } from "react-redux";
+import { login } from "../features/authSlice"; // ✅ updated import
 import { toast } from "react-toastify";
 import { Mail, Lock, Eye, EyeOff, ArrowRight } from "lucide-react";
 import { FaGoogle, FaXTwitter } from "react-icons/fa6";
@@ -10,6 +10,7 @@ import logInImage from "../assets/images/pages/signIn.png";
 
 const Login = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
@@ -58,7 +59,6 @@ const Login = () => {
     const formErrors = validateForm();
     if (Object.keys(formErrors).length > 0) {
       setErrors(formErrors);
-      // Show the first specific validation error in a toast
       toast.warn(Object.values(formErrors)[0]);
       return;
     }
@@ -75,29 +75,38 @@ const Login = () => {
             email: formData.email,
             password: formData.password,
           }),
+          credentials: "include",
         }
       );
 
-      // Robustly parse JSON from the response, handling non-JSON errors gracefully
       const responseData = await res.json().catch(() => null);
 
-      if (res.ok) {
-        // On success, store the token and show a success toast
-        // Note: Assuming the token is at `responseData.token` as per original code.
-        // Adjust if your API response structure is different (e.g., `responseData.data.token`).
-        if (responseData?.token) {
-          localStorage.setItem("authToken", responseData.token);
+      if (responseData.success) {
+        if (responseData?.data.accessToken && responseData?.data.user) {
+          // Store token & user in localStorage
+          localStorage.setItem("authToken", responseData.data.accessToken);
+          localStorage.setItem(
+            "authUser",
+            JSON.stringify(responseData.data.user)
+          );
+
+          // Update Redux state
+          dispatch(
+            login({
+              user: responseData.data.user,
+              token: responseData.data.accessToken,
+            })
+          );
         }
 
         toast.success(
-          responseData?.message || "Login successful! Redirecting..."
+          responseData.message || "Login successful! Redirecting..."
         );
 
         setTimeout(() => {
           navigate("/dashboard");
         }, 1500);
       } else {
-        // On failure, show a specific error toast based on the response
         const errorMessage = responseData?.message;
         if (res.status === 401 || res.status === 404) {
           toast.error(
@@ -109,7 +118,6 @@ const Login = () => {
         }
       }
     } catch (err) {
-      // For network or other critical errors, show a clear network error toast
       console.error("Login network error:", err);
       toast.error(
         "A network error occurred. Please check your connection and try again."
