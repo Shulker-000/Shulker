@@ -1,12 +1,15 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { toast } from "react-toastify";
 import { User, Mail, Send, PenSquare, MessageSquare } from "lucide-react";
 import { FaPhone, FaMapMarkerAlt } from "react-icons/fa";
-import ContactImage from "../assets/images/pages/contact.png"
+import ContactImage from "../assets/images/pages/contact.png";
 
 const ContactPage = () => {
+  // Create a ref for the form element
+  const form = useRef();
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -15,6 +18,21 @@ const ContactPage = () => {
   });
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  const [emailJsLoaded, setEmailJsLoaded] = useState(false);
+
+  // Dynamically load the EmailJS script using a CDN
+  useEffect(() => {
+    const script = document.createElement("script");
+    script.src =
+      "https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js";
+    script.onload = () => setEmailJsLoaded(true);
+    script.onerror = () => console.error("Failed to load EmailJS script.");
+    document.body.appendChild(script);
+
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -60,12 +78,27 @@ const ContactPage = () => {
     setIsLoading(true);
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      // Check if EmailJS script has loaded before sending
+      if (!emailJsLoaded) {
+        throw new Error("EmailJS library not loaded. Please try again.");
+      }
+
+      // Get EmailJS keys from environment variables
+      const serviceId = import.meta.env.VITE_EMAILJS_SERVICE_ID;
+      const templateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
+      const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
+
+      // Check if all keys are provided
+      if (!serviceId || !templateId || !publicKey) {
+        throw new Error("EmailJS keys are not configured properly in .env");
+      }
+
+      await emailjs.sendForm(serviceId, templateId, form.current, publicKey);
+
       toast.success("Message sent successfully! We'll be in touch soon.");
       setFormData({ name: "", email: "", subject: "", message: "" });
     } catch (err) {
-      console.error("Contact form submission error:", err);
+      console.error("EmailJS submission error:", err);
       toast.error("A network error occurred. Please try again later.");
     } finally {
       setIsLoading(false);
@@ -125,11 +158,17 @@ const ContactPage = () => {
               Get in Touch
             </h2>
             <p className="mt-2 text-md text-gray-600">
-              Fill out the form below, and we'll get back to you shortly.
+              We'll get back to you shortly.
             </p>
           </motion.div>
 
-          <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+          {/* Pass the form ref to the form element */}
+          <form
+            ref={form}
+            onSubmit={handleSubmit}
+            className="space-y-4"
+            noValidate
+          >
             <motion.div variants={itemVariants}>
               <label
                 htmlFor="name"
@@ -151,7 +190,7 @@ const ContactPage = () => {
                       ? "border-red-500 focus:ring-red-500"
                       : "border-gray-300 focus:ring-teal-500"
                   }`}
-                  placeholder="John Doe"
+                  placeholder="Your Name"
                 />
               </div>
               {errors.name && (
