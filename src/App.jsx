@@ -15,6 +15,7 @@ import ResetPassword from './pages/resetPassword/[token]';
 import Dashboard from './pages/Dashboard.jsx';
 import { useDispatch } from 'react-redux';
 import { login } from './features/authSlice';
+import AuthSuccess from './pages/AuthSuccess.jsx';
 
 const AppWrapper = () => {
   const location = useLocation()
@@ -46,6 +47,7 @@ const AppWrapper = () => {
         <Route path="/about" element={<AboutPage />} />
         <Route path="/landing" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/auth-success" element={<AuthSuccess />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/signup" element={<RegisterPage />} />
         <Route path="/whiteboard" element={<WhiteBoard />} />

@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useDispatch } from "react-redux";
-import { login } from "../features/authSlice"; // ✅ updated import
+import { login } from "../features/authSlice";
 import { toast } from "react-toastify";
 import { Mail, Lock, Eye, EyeOff, ArrowRight } from "lucide-react";
 import { FaGoogle, FaXTwitter } from "react-icons/fa6";
@@ -111,7 +111,7 @@ const Login = () => {
         if (res.status === 401 || res.status === 404) {
           toast.error(
             errorMessage ||
-              "Invalid credentials. Please check your email and password."
+            "Invalid credentials. Please check your email and password."
           );
         } else {
           toast.error(errorMessage || "Login failed. Please try again.");
@@ -202,11 +202,10 @@ const Login = () => {
                     value={formData.email}
                     onChange={handleInputChange}
                     onBlur={handleBlur}
-                    className={`block w-full pl-10 pr-3 py-2.5 border rounded-lg shadow-sm focus:outline-none focus:ring-2 ${
-                      errors.email
+                    className={`block w-full pl-10 pr-3 py-2.5 border rounded-lg shadow-sm focus:outline-none focus:ring-2 ${errors.email
                         ? "border-red-500 focus:ring-red-500"
                         : "border-gray-300 focus:ring-indigo-500"
-                    }`}
+                      }`}
                     placeholder="john.doe@company.com"
                   />
                 </div>
@@ -234,11 +233,10 @@ const Login = () => {
                     value={formData.password}
                     onChange={handleInputChange}
                     onBlur={handleBlur}
-                    className={`block w-full pl-10 pr-10 py-2.5 border rounded-lg shadow-sm focus:outline-none focus:ring-2 ${
-                      errors.password
+                    className={`block w-full pl-10 pr-10 py-2.5 border rounded-lg shadow-sm focus:outline-none focus:ring-2 ${errors.password
                         ? "border-red-500 focus:ring-red-500"
                         : "border-gray-300 focus:ring-indigo-500"
-                    }`}
+                      }`}
                     placeholder="Enter your password"
                   />
                   <button
@@ -300,6 +298,9 @@ const Login = () => {
               >
                 <button
                   type="button"
+                  onClick={() => {
+                    window.location.href = `${import.meta.env.VITE_BACKEND_URL}/api/v1/users/auth/google`;
+                  }}
                   className="w-full inline-flex items-center justify-center py-2.5 px-4 rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 text-sm font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                 >
                   <FaGoogle /> <span className="ml-2">Google</span>
