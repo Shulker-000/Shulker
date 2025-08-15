@@ -11,21 +11,19 @@ export default function AuthSuccess() {
     const params = new URLSearchParams(window.location.search);
     const accessToken = params.get("accessToken");
     const refreshToken = params.get("refreshToken");
-
     if (accessToken) {
-      // Optional: Fetch user profile from backend
       fetch(`${import.meta.env.VITE_BACKEND_URL}/api/v1/users/current-user`, {
         headers: { Authorization: `Bearer ${accessToken}` },
         credentials: "include",
       })
         .then((res) => res.json())
         .then((data) => {
-          if (data.success && data.user) {
+          if (data.success && data.message.user) {
             localStorage.setItem("authToken", accessToken);
             localStorage.setItem("refreshToken", refreshToken);
-            localStorage.setItem("authUser", JSON.stringify(data.user));
+            localStorage.setItem("authUser", JSON.stringify(data.message.user));
 
-            dispatch(login({ user: data.user, token: accessToken }));
+            dispatch(login({ user: data.message.user, token: accessToken }));
             navigate("/dashboard");
           } else {
             navigate("/login?error=auth_failed");
