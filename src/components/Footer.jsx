@@ -34,7 +34,7 @@ const Footer = () => {
           {/* Brand Section */}
           <div className="col-span-1 sm:col-span-2 lg:col-span-2 xl:col-span-2">
             <div className="flex items-center mb-6">
-              <img src="/LogoIcon.svg" className="h-18 w-18" alt="" />
+              <img src="/logo.png" className="h-18 w-18" alt="" />
 
               <span className="text-xl font-bold text-white">Shulker</span>
             </div>

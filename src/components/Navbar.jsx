@@ -273,7 +273,7 @@ const Navbar = () => {
 
             {/* Logo */}
             <Link to="/" onClick={closeMobileMenu} className="flex-shrink-0 flex items-center gap-2 group">
-              <img src="/LogoIcon.svg" className='h-8 w-8' alt="Shulker Logo" />
+              <img src="/logo.png" className='h-8 w-8' alt="Shulker Logo" />
               <span className="text-xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
                 Shulker
               </span>
@@ -329,7 +329,7 @@ const Navbar = () => {
             {/* Menu header with logo and close button */}
             <div className="flex items-center justify-between px-4 h-16 border-b border-gray-200">
               <Link to="/" onClick={closeMobileMenu} className="flex-shrink-0 flex items-center gap-2">
-                <img src="/LogoIcon.svg" className='h-8 w-8' alt="Shulker Logo" />
+                <img src="/logo.png" className='h-8 w-8' alt="Shulker Logo" />
                 <span className="text-xl font-bold text-gray-900">Shulker</span>
               </Link>
               <button
