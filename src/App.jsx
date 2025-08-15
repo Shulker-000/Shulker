@@ -16,6 +16,7 @@ import Dashboard from './pages/Dashboard.jsx';
 import { useDispatch } from 'react-redux';
 import { login } from './features/authSlice';
 import AuthSuccess from './pages/AuthSuccess.jsx';
+import ProfilePage from './pages/ProfilePage.jsx';
 
 const AppWrapper = () => {
   const location = useLocation()
@@ -56,6 +57,7 @@ const AppWrapper = () => {
         <Route path="/notfound" element={<NotFoundPage />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
+        <Route path="/profile" element={<ProfilePage />} />
         <Route path="*" element={<Navigate to="/notfound" replace />} />
       </Routes>
       {!shouldHideNavbarFooter && <Footer />}

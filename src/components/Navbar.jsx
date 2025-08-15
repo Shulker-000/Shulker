@@ -37,7 +37,7 @@ const navItems = [
 const authRoutes = {
   login: '/login',
   signup: '/signup',
-  profile: '/user/profile',
+  profile: '/profile',
   settings: '/user/settings',
   dashboard: '/dashboard',
 };
@@ -126,6 +126,8 @@ const AuthButtons = ({ isMobile = false }) => {
 const ProfileDropdown = ({ user, onLogout, isMobile = false, onLinkClick, isLoggingOut }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
+  const navigate = useNavigate();
+
   useClickOutside(dropdownRef, () => setIsOpen(false));
 
   const handleLogoutClick = () => {
@@ -137,12 +139,19 @@ const ProfileDropdown = ({ user, onLogout, isMobile = false, onLinkClick, isLogg
     setIsOpen(false);
     if(onLinkClick) onLinkClick(e);
   };
+  
+  // New handler for profile click
+  const handleProfileClick = () => {
+    setIsOpen(false);
+    navigate(authRoutes.profile);
+    if(onLinkClick) onLinkClick();
+  };
 
   if (isMobile) {
     return (
       <div className="border-t border-gray-200 pt-6 pb-3 space-y-2">
         <div className="px-4 py-2">
-          <p className="text-lg font-bold text-gray-900">{user?.name}</p>
+          <p className="text-lg font-bold text-gray-900">{user?.username}</p>
           <p className="text-sm text-gray-500">{user?.email}</p>
         </div>
         <Link to={authRoutes.dashboard} onClick={handleLinkClick} className="flex items-center w-full px-4 py-3 text-lg font-medium text-gray-700 hover:bg-gray-100 hover:text-blue-600 rounded-xl"><Settings className="h-5 w-5 mr-4" />Dashboard</Link>
@@ -162,7 +171,7 @@ const ProfileDropdown = ({ user, onLogout, isMobile = false, onLinkClick, isLogg
     <div className="relative ml-4 pl-4 border-l border-gray-200" ref={dropdownRef}>
       <button onClick={() => setIsOpen(!isOpen)} className="flex items-center space-x-2 p-1 rounded-full hover:bg-gray-100 transition-colors" aria-expanded={isOpen} aria-controls="profile-dropdown">
         <div className="h-8 w-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
-          {user?.name?.charAt(0) || 'U'}
+          {user?.username?.charAt(0) || 'U'}
         </div>
         <ChevronDown className={`h-4 w-4 text-gray-500 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
       </button>
@@ -170,10 +179,10 @@ const ProfileDropdown = ({ user, onLogout, isMobile = false, onLinkClick, isLogg
       {isOpen && (
         <div id="profile-dropdown" className="absolute right-0 top-full mt-2 w-64 bg-white rounded-lg shadow-xl border py-2 animate-in fade-in slide-in-from-top-2 duration-200">
           <div className="px-4 py-3 border-b">
-            <p className="text-sm font-medium text-gray-900 truncate">{user?.name}</p>
+            <p className="text-sm font-medium text-gray-900 truncate">{user?.username}</p>
             <p className="text-xs text-gray-500 truncate">{user?.email}</p>
           </div>
-          <Link to={authRoutes.profile} onClick={handleLinkClick} className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600"><User className="h-4 w-4 mr-2" />Profile</Link>
+          <button onClick={handleProfileClick} className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600"><User className="h-4 w-4 mr-2" />Profile</button>
           <Link to={authRoutes.settings} onClick={handleLinkClick} className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600"><Settings className="h-4 w-4 mr-2" />Settings</Link>
           <hr className="my-1" />
           <button onClick={handleLogoutClick} disabled={isLoggingOut} className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50">
