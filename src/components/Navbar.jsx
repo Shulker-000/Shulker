@@ -258,9 +258,14 @@ const ProfileDropdown = ({
         aria-expanded={isOpen}
         aria-controls="profile-dropdown"
       >
-        <div className="h-8 w-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
-          {user?.username?.charAt(0) || "U"}
-        </div>
+        <img
+              src={
+                user.avatar ||
+                `https://ui-avatars.com/api/?name=${user?.username}&background=4f46e5&color=fff&size=200`
+              }
+              alt="Profile"
+              className="w-10 h-10 object-cover rounded-full border-4 border-white transition-transform duration-300 group-hover:scale-105"
+            />
         <ChevronDown
           className={`h-4 w-4 text-gray-500 transition-transform duration-200 ${
             isOpen ? "rotate-180" : ""
