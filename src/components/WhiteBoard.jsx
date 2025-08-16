@@ -1,10 +1,10 @@
-import React from 'react'
-import { Tldraw } from '@tldraw/tldraw'
-import '@tldraw/tldraw/tldraw.css'
-import { useNavigate } from 'react-router-dom'
+import React from "react";
+import { Tldraw } from "@tldraw/tldraw";
+import "@tldraw/tldraw/tldraw.css";
+import { useNavigate } from "react-router-dom";
 
 const Whiteboard = () => {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   return (
     <div className="relative w-screen h-screen">
@@ -18,7 +18,7 @@ const Whiteboard = () => {
         Go Back
       </button>
     </div>
-  )
-}
+  );
+};
 
-export default Whiteboard
+export default Whiteboard;

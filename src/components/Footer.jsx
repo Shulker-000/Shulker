@@ -1,13 +1,12 @@
 import React from "react";
+import { Mail, ArrowUp } from "lucide-react";
 import {
-  Facebook,
-  Twitter,
-  Linkedin,
-  Instagram,
-  Mail,
-  ArrowUp,
-  Github,
-} from "lucide-react";
+  FaFacebook,
+  FaXTwitter,
+  FaLinkedin,
+  FaGithub,
+  FaInstagram,
+} from "react-icons/fa6";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -53,7 +52,7 @@ const Footer = () => {
                 </a>
               </div>
               <div className="flex items-center text-gray-400 hover:text-blue-400 transition-colors group">
-                <Github className="w-4 h-4 mr-3 group-hover:scale-110 transition-transform" />
+                <FaGithub className="w-4 h-4 mr-3 group-hover:scale-110 transition-transform" />
                 <a
                   href="https://github.com/neurix-000"
                   target="_blank"
@@ -69,22 +68,22 @@ const Footer = () => {
             <div className="flex space-x-4">
               {[
                 {
-                  Icon: Facebook,
+                  Icon: FaFacebook,
                   href: "https://facebook.com",
                   color: "hover:bg-blue-600",
                 },
                 {
-                  Icon: Twitter,
+                  Icon: FaXTwitter,
                   href: "https://twitter.com",
                   color: "hover:bg-sky-500",
                 },
                 {
-                  Icon: Linkedin,
+                  Icon: FaLinkedin,
                   href: "https://linkedin.com",
                   color: "hover:bg-blue-700",
                 },
                 {
-                  Icon: Instagram,
+                  Icon: FaInstagram,
                   href: "https://instagram.com",
                   color: "hover:bg-pink-600",
                 },
