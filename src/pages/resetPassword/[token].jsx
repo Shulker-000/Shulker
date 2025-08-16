@@ -29,22 +29,22 @@ const ResetPassword = () => {
     setError(""); // Clear previous errors
 
     if (!newPassword || !confirmPassword) {
-        setError("Please fill in both password fields.");
-        toast.warn("Please fill in both password fields.");
-        return;
+      setError("Please fill in both password fields.");
+      toast.warn("Please fill in both password fields.");
+      return;
     }
 
     // Check if the new password meets the length requirement
     if (newPassword.length < 8) {
-        setError("Password must be at least 8 characters long.");
-        toast.warn("Password must be at least 8 characters long.");
-        return;
+      setError("Password must be at least 8 characters long.");
+      toast.warn("Password must be at least 8 characters long.");
+      return;
     }
 
     if (newPassword !== confirmPassword) {
-        setError("Passwords do not match.");
-        toast.warn("Passwords do not match.");
-        return;
+      setError("Passwords do not match.");
+      toast.warn("Passwords do not match.");
+      return;
     }
 
     if (!token) {
@@ -57,7 +57,9 @@ const ResetPassword = () => {
     try {
       const response = await fetch(
         // Ensure you have VITE_BACKEND_URL in your .env file
-        `${import.meta.env.VITE_BACKEND_URL}/api/v1/users/reset-password/${token}`,
+        `${
+          import.meta.env.VITE_BACKEND_URL
+        }/api/v1/users/reset-password/${token}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -68,14 +70,15 @@ const ResetPassword = () => {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || "Failed to reset password. The link may have expired.");
+        throw new Error(
+          data.message || "Failed to reset password. The link may have expired."
+        );
       }
 
       toast.success("Password reset successful! Redirecting to login...");
       setTimeout(() => {
-        navigate('/login');
+        navigate("/login");
       }, 2000);
-
     } catch (error) {
       toast.error(error.message);
       setError(error.message); // Display error message near the form field
@@ -114,14 +117,16 @@ const ResetPassword = () => {
               className="w-full h-auto rounded-lg object-cover"
               onError={(e) => {
                 e.target.onerror = null;
-                e.target.src = "https://placehold.co/600x400/7c3aed/ffffff?text=Security";
+                e.target.src =
+                  "https://placehold.co/600x400/7c3aed/ffffff?text=Security";
               }}
             />
             <h1 className="mt-6 text-4xl font-bold tracking-tight">
               Create a New Password
             </h1>
             <p className="mt-4 text-lg text-indigo-100 max-w-sm mx-auto">
-              A strong password helps protect your account from unauthorized access.
+              A strong password helps protect your account from unauthorized
+              access.
             </p>
           </motion.div>
         </div>
@@ -141,7 +146,9 @@ const ResetPassword = () => {
               <h2 className="text-3xl lg:text-4xl font-bold text-gray-900">
                 Reset Your Password
               </h2>
-               <p className="text-gray-600 mt-2">Enter your new password below to regain access to your account.</p>
+              <p className="text-gray-600 mt-2">
+                Enter your new password below to regain access to your account.
+              </p>
             </motion.div>
 
             <form onSubmit={handleSubmit} className="space-y-4" noValidate>
@@ -165,7 +172,7 @@ const ResetPassword = () => {
                     placeholder="Enter new password"
                     required
                   />
-                   <button
+                  <button
                     type="button"
                     className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-indigo-600"
                     onClick={() => setShowPassword(!showPassword)}
@@ -178,7 +185,7 @@ const ResetPassword = () => {
                   </button>
                 </div>
               </motion.div>
-              
+
               {/* Confirm Password Field */}
               <motion.div variants={itemVariants}>
                 <label
@@ -204,7 +211,7 @@ const ResetPassword = () => {
                     placeholder="Confirm new password"
                     required
                   />
-                   <button
+                  <button
                     type="button"
                     className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-indigo-600"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
@@ -216,11 +223,9 @@ const ResetPassword = () => {
                     )}
                   </button>
                 </div>
-                 {error && (
-                  <p className="mt-1 text-xs text-red-600">{error}</p>
-                )}
+                {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
               </motion.div>
-              
+
               <motion.div variants={itemVariants} className="pt-2">
                 <button
                   type="submit"
@@ -232,18 +237,18 @@ const ResetPassword = () => {
                 </button>
               </motion.div>
             </form>
-             <motion.p
-                variants={itemVariants}
-                className="pt-6 text-center text-sm text-gray-600"
+            <motion.p
+              variants={itemVariants}
+              className="pt-6 text-center text-sm text-gray-600"
+            >
+              Remember your password?{" "}
+              <Link
+                to="/login"
+                className="font-medium text-indigo-600 hover:underline"
               >
-                Remember your password?{" "}
-                <Link
-                  to="/login"
-                  className="font-medium text-indigo-600 hover:underline"
-                >
-                  Sign in here
-                </Link>
-              </motion.p>
+                Sign in here
+              </Link>
+            </motion.p>
           </motion.div>
         </div>
       </div>

@@ -18,11 +18,19 @@ const authSlice = createSlice({
     logout: (state) => {
       state.user = null;
       state.token = null;
-      localStorage.removeItem("authToken"); // Clean up local storage
+      // Clean up local storage
+      localStorage.removeItem("authToken");
+      localStorage.removeItem("authUser");
+      localStorage.removeItem("refreshToken");
+    },
+    // This new reducer updates the user object in both state and local storage
+    updateUserProfile: (state, action) => {
+      state.user = action.payload;
+      localStorage.setItem("authUser", JSON.stringify(action.payload));
     },
   },
 });
 
-export const { login, logout } = authSlice.actions;
+export const { login, logout, updateUserProfile } = authSlice.actions;
 
 export default authSlice.reducer;

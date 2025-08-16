@@ -5,7 +5,7 @@ import { useDispatch } from "react-redux";
 import { login } from "../features/authSlice";
 import { toast } from "react-toastify";
 import { Mail, Lock, Eye, EyeOff, ArrowRight } from "lucide-react";
-import { FaGoogle, FaXTwitter } from "react-icons/fa6";
+import { FaGoogle } from "react-icons/fa6";
 import logInImage from "../assets/images/pages/signIn.png";
 
 const Login = () => {
@@ -52,7 +52,7 @@ const Login = () => {
       newErrors.password = "Password is required.";
     }
     return newErrors;
-  };
+  }; 
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -83,7 +83,7 @@ const Login = () => {
 
       if (responseData.success) {
         if (responseData?.data.accessToken && responseData?.data.user) {
-          // Store token & user in localStorage
+          // // // Store token & user in localStorage
           localStorage.setItem("authToken", responseData.data.accessToken);
           localStorage.setItem(
             "authUser",
@@ -294,7 +294,6 @@ const Login = () => {
 
               <motion.div
                 variants={itemVariants}
-                className="grid grid-cols-1 sm:grid-cols-2 gap-3"
               >
                 <button
                   type="button"
@@ -304,12 +303,6 @@ const Login = () => {
                   className="w-full inline-flex items-center justify-center py-2.5 px-4 rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 text-sm font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                 >
                   <FaGoogle /> <span className="ml-2">Google</span>
-                </button>
-                <button
-                  type="button"
-                  className="w-full inline-flex items-center justify-center py-2.5 px-4 rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 text-sm font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                >
-                  <FaXTwitter /> <span className="ml-2">X</span>
                 </button>
               </motion.div>
             </form>
