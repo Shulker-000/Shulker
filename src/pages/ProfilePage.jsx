@@ -115,11 +115,15 @@ export default function ProfilePage() {
     }
   };
 
-
   const handleAvatarChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      const allowedTypes = ["image/jpeg", "image/png", "image/jpg", "image/webp"];
+      const allowedTypes = [
+        "image/jpeg",
+        "image/png",
+        "image/jpg",
+        "image/webp",
+      ];
       if (!allowedTypes.includes(file.type)) {
         toast.error("Invalid file type. Please upload a .jpg or .png image.");
         setAvatarFile(null);
@@ -145,11 +149,6 @@ export default function ProfilePage() {
         );
 
         const avatarData = await avatarResponse.json();
-        // //
-        console.log(user);
-        // //
-        console.log(avatarData);
-        // //
         if (!avatarResponse.ok) {
           throw new Error(avatarData.message || "Failed to update avatar");
         }
@@ -226,9 +225,6 @@ export default function ProfilePage() {
         <p>Loading profile...</p>
       </div>
     );
-    console.log(avatarFile);
-    console.log(user?.avatar && user.avatar.trim() !== "");
-    console.log(user.avatar);
 
   return (
     <div className="lg:min-h-[91.5vh] font-sans antialiased bg-white text-gray-800 p-6">
