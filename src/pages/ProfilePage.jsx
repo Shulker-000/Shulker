@@ -367,11 +367,10 @@ export default function ProfilePage() {
         <div className="flex justify-end gap-3 mb-10">
           <button
             onClick={() => setIsEditing(!isEditing)}
-            className={`flex items-center gap-2 text-white px-5 py-2 rounded-full text-sm font-medium transition-all duration-300 shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-50 ${
-              isEditing
-                ? "bg-rose-500 hover:bg-rose-600 focus:ring-rose-400"
-                : "bg-blue-600 hover:bg-blue-700 focus:ring-blue-500"
-            }`}
+            className={`flex items-center gap-2 text-white px-5 py-2 rounded-full text-sm font-medium transition-all duration-300 shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-50 ${isEditing
+              ? "bg-rose-500 hover:bg-rose-600 focus:ring-rose-400"
+              : "bg-blue-600 hover:bg-blue-700 focus:ring-blue-500"
+              }`}
           >
             {isEditing ? (
               <>
@@ -387,7 +386,7 @@ export default function ProfilePage() {
             onClick={() => setIsPasswordModalOpen(true)}
             className="flex items-center gap-2 text-white bg-indigo-600 hover:bg-indigo-700 px-5 py-2 rounded-full text-sm font-medium shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-50 focus:ring-indigo-500 transition-all duration-300"
           >
-            <KeyRound size={16} /> Password
+            <KeyRound size={16} /> Change Password
           </button>
           <button
             onClick={handleLogout}
@@ -536,7 +535,7 @@ export default function ProfilePage() {
                 </div>
                 <div className="flex flex-col w-full text-left">
                   <p className="text-xs sm:text-sm text-gray-500 uppercase font-semibold tracking-wide">
-                    Status
+                    Email Verification Status
                   </p>
                   <p className="text-lg font-semibold text-gray-800">
                     {user.isEmailVerified ? "Verified" : "Not Verified"}
@@ -578,7 +577,7 @@ export default function ProfilePage() {
                 </div>
                 <div className="flex flex-col w-full text-left">
                   <p className="text-xs sm:text-sm text-gray-500 uppercase font-semibold tracking-wide">
-                    Joined
+                    Date Joined
                   </p>
                   <p className="text-lg font-semibold text-gray-800">
                     {new Date(user.createdAt).toLocaleDateString("en-US", {
