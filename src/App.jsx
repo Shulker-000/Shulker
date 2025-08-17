@@ -11,11 +11,12 @@ import Footer from "./components/Footer";
 import Contact from "./pages/Contact";
 import NotFoundPage from "./pages/NotFoundPage";
 import ForgotPassword from "./pages/ForgotPassword";
-import ResetPassword from "./pages/resetPassword/[token]";
+import ResetPassword from "./pages/resetPassword/[token].jsx";
 import Dashboard from "./pages/Dashboard.jsx";
 import { login } from "./features/authSlice";
 import AuthSuccess from "./pages/AuthSuccess.jsx";
 import ProfilePage from "./pages/ProfilePage.jsx";
+import VerifyEmailPage from "./pages/VerifyEmailPage.jsx";
 
 import { useSelector, useDispatch } from "react-redux";
 
@@ -25,7 +26,7 @@ const AppWrapper = () => {
   const dispatch = useDispatch();
   const user = useSelector((state) => state.auth.user);
 
-  const [rehydrated, setRehydrated] = useState(false); // Track if Redux state is loaded from localStorage
+  const [rehydrated, setRehydrated] = useState(false);
 
   // Load user from localStorage once
   useEffect(() => {
@@ -35,17 +36,17 @@ const AppWrapper = () => {
     if (token && user) {
       dispatch(
         login({
-          user: JSON.parse(user), // convert string back to object
+          user: JSON.parse(user),
           token: token,
         })
       );
     }
-    setRehydrated(true); // mark Redux as loaded
+    setRehydrated(true);
   }, [dispatch]);
 
   // Redirect logic after rehydration
   useEffect(() => {
-    if (!rehydrated) return; // wait until Redux is initialized
+    if (!rehydrated) return;
 
     if (user) {
       // Redirect logged-in users away from landing/login/register
@@ -61,7 +62,7 @@ const AppWrapper = () => {
   }, [user, location.pathname, navigate, rehydrated]);
 
   // Routes where Navbar/Footer should be hidden
-  const hideNavbarFooterRoutes = ["/whiteboard", "/login", "/signup", "/register", "/notfound"];
+  const hideNavbarFooterRoutes = ["/whiteboard", "/login", "/signup", "/register", "/notfound", "/verify-email"];
   const shouldHideNavbarFooter = hideNavbarFooterRoutes.includes(location.pathname);
 
   if (!rehydrated) {
@@ -88,7 +89,10 @@ const AppWrapper = () => {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
+        {/* Corrected route for Reset Password */}
         <Route path="/reset-password/:token" element={<ResetPassword />} />
+        {/* New route for Email Verification */}
+        <Route path="/verify-email/:token" element={<VerifyEmailPage />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
