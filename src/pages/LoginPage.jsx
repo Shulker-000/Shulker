@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+// eslint-disable-next-line no-unused-vars
 import { motion } from "framer-motion";
 import { useDispatch } from "react-redux";
 import { login } from "../features/authSlice";
@@ -204,8 +205,8 @@ const Login = () => {
                     onBlur={handleBlur}
                     className={`block w-full pl-10 pr-3 py-2.5 border rounded-lg shadow-sm focus:outline-none focus:ring-2 ${
                       errors.email
-                        ? "border-red-500 focus:ring-red-500"
-                        : "border-gray-300 focus:ring-indigo-500"
+                      ? "border-red-500 focus:ring-red-500"
+                      : "border-gray-300 focus:ring-indigo-500"
                     }`}
                     placeholder="your-email@email.com"
                   />
@@ -234,11 +235,10 @@ const Login = () => {
                     value={formData.password}
                     onChange={handleInputChange}
                     onBlur={handleBlur}
-                    className={`block w-full pl-10 pr-10 py-2.5 border rounded-lg shadow-sm focus:outline-none focus:ring-2 ${
-                      errors.password
+                    className={`block w-full pl-10 pr-10 py-2.5 border rounded-lg shadow-sm focus:outline-none focus:ring-2 ${errors.password
                         ? "border-red-500 focus:ring-red-500"
                         : "border-gray-300 focus:ring-indigo-500"
-                    }`}
+                      }`}
                     placeholder="Enter your password"
                   />
                   <button
