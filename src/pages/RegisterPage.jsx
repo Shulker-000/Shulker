@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Mail, Lock, Eye, EyeOff, ArrowRight, User, Check, XIcon } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { Mail, Lock, Eye, EyeOff, ArrowRight, User, Check, XIcon, Home } from "lucide-react";
+import { useNavigate, Link } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import signUpImage from "../assets/images/pages/signUp.png"
@@ -318,7 +318,7 @@ const RegisterPage = () => {
         {modalContent.content}
       </Modal>
 
-      <div className="flex min-h-screen w-full bg-gray-50 font-sans">
+      <div className="flex min-h-screen lg:h-screen w-full bg-gray-50 font-sans">
         <div className="flex w-full flex-1">
           {/* Left promotional panel */}
           <div className="hidden lg:flex w-1/2 flex-col items-center justify-center bg-gradient-to-br from-indigo-600 to-purple-700 p-12 text-white text-center relative overflow-hidden">
@@ -600,6 +600,18 @@ const RegisterPage = () => {
                   >
                     Sign in here
                   </a>
+                </motion.p>
+                <motion.p
+                  variants={itemVariants}
+                  className="pt-2 text-center text-sm text-gray-600"
+                >
+                  <Link
+                    to="/"
+                    className="font-medium text-indigo-600 hover:underline inline-flex items-center"
+                  >
+                    <Home className="h-4 w-4 mr-1" />
+                    Go to Home
+                  </Link>
                 </motion.p>
               </form>
             </motion.div>

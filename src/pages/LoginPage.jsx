@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { useDispatch } from "react-redux";
 import { login } from "../features/authSlice";
 import { toast } from "react-toastify";
-import { Mail, Lock, Eye, EyeOff, ArrowRight } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, ArrowRight, Home } from "lucide-react";
 import { FaGoogle } from "react-icons/fa6";
 import logInImage from "../assets/images/pages/signIn.png";
 
@@ -202,11 +202,12 @@ const Login = () => {
                     value={formData.email}
                     onChange={handleInputChange}
                     onBlur={handleBlur}
-                    className={`block w-full pl-10 pr-3 py-2.5 border rounded-lg shadow-sm focus:outline-none focus:ring-2 ${errors.email
+                    className={`block w-full pl-10 pr-3 py-2.5 border rounded-lg shadow-sm focus:outline-none focus:ring-2 ${
+                      errors.email
                         ? "border-red-500 focus:ring-red-500"
                         : "border-gray-300 focus:ring-indigo-500"
-                      }`}
-                    placeholder="john.doe@company.com"
+                    }`}
+                    placeholder="your-email@email.com"
                   />
                 </div>
                 {errors.email && (
@@ -233,10 +234,11 @@ const Login = () => {
                     value={formData.password}
                     onChange={handleInputChange}
                     onBlur={handleBlur}
-                    className={`block w-full pl-10 pr-10 py-2.5 border rounded-lg shadow-sm focus:outline-none focus:ring-2 ${errors.password
+                    className={`block w-full pl-10 pr-10 py-2.5 border rounded-lg shadow-sm focus:outline-none focus:ring-2 ${
+                      errors.password
                         ? "border-red-500 focus:ring-red-500"
                         : "border-gray-300 focus:ring-indigo-500"
-                      }`}
+                    }`}
                     placeholder="Enter your password"
                   />
                   <button
@@ -258,8 +260,17 @@ const Login = () => {
 
               <motion.div
                 variants={itemVariants}
-                className="flex items-center justify-end"
+                className="flex items-center justify-between"
               >
+                <div className="text-sm">
+                  <Link
+                    to="/"
+                    className="font-medium text-indigo-600 hover:underline inline-flex items-center"
+                  >
+                    <Home className="h-4 w-4 mr-1" />
+                    Home
+                  </Link>
+                </div>
                 <div className="text-sm">
                   <Link
                     to="/forgot-password"
@@ -292,9 +303,7 @@ const Login = () => {
                 </div>
               </motion.div>
 
-              <motion.div
-                variants={itemVariants}
-              >
+              <motion.div variants={itemVariants}>
                 <button
                   type="button"
                   onClick={() => {
