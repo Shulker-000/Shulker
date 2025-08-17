@@ -384,10 +384,16 @@ export default function ProfilePage() {
           </button>
           <button
             onClick={() => setIsPasswordModalOpen(true)}
-            className="flex items-center gap-2 text-white bg-indigo-600 hover:bg-indigo-700 px-5 py-2 rounded-full text-sm font-medium shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-50 focus:ring-indigo-500 transition-all duration-300"
+            disabled={!!user.googleId}
+            className={`flex items-center gap-2 px-5 py-2 rounded-full text-sm font-medium shadow-md focus:outline-none transition-all duration-300
+    ${user.googleId
+                ? "bg-gray-400 cursor-not-allowed text-gray-200"
+                : "text-white bg-indigo-600 hover:bg-indigo-700 focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-50 focus:ring-indigo-500"
+              }`}
           >
             <KeyRound size={16} /> Change Password
           </button>
+
           <button
             onClick={handleLogout}
             className="flex items-center gap-2 text-white bg-red-600 hover:bg-red-700 px-5 py-2 rounded-full text-sm font-medium shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-50 focus:ring-red-500 transition-all duration-300"
