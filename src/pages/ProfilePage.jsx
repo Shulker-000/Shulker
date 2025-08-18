@@ -358,7 +358,7 @@ export default function ProfilePage() {
             alt="Profile Avatar"
             className="w-full h-full object-cover transition-opacity duration-300"
           />
-          <div className="absolute inset-0 flex items-center justify-center bg-blue-600 bg-opacity-40 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-400 bg-opacity-40 opacity-0 group-hover:opacity-80 transition-opacity duration-300">
             <Camera className="text-white w-6 h-6" />
           </div>
         </div>

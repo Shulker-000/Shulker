@@ -42,7 +42,6 @@ const authRoutes = {
   login: "/login",
   signup: "/signup",
   profile: "/profile",
-  settings: "/user/settings",
   dashboard: "/dashboard",
 };
 
@@ -291,14 +290,6 @@ const ProfileDropdown = ({
             <User className="h-4 w-4 mr-2" />
             Profile
           </button>
-          <Link
-            to={authRoutes.settings}
-            onClick={handleLinkClick}
-            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600"
-          >
-            <Settings className="h-4 w-4 mr-2" />
-            Settings
-          </Link>
           <hr className="my-1" />
           <button
             onClick={handleLogoutClick}
