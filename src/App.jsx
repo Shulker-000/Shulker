@@ -19,6 +19,8 @@ import ProfilePage from "./pages/ProfilePage.jsx";
 import VerifyEmailPage from "./pages/VerifyEmailPage.jsx";
 
 import { useSelector, useDispatch } from "react-redux";
+import StreamVideoProvider from "./providers/StreamVideoProvider.jsx";
+import MeetingRoom from "./components/MeetingRoom.jsx";
 
 const AppWrapper = () => {
   const location = useLocation();
@@ -94,6 +96,18 @@ const AppWrapper = () => {
         {/* New route for Email Verification */}
         <Route path="/verify-email/:token" element={<VerifyEmailPage />} />
         <Route path="/profile" element={<ProfilePage />} />
+        <Route
+          path="/meetings/*"
+          element={
+            <StreamVideoProvider>
+              <Routes>
+                <Route path="/:meetingId" element={<MeetingRoom />} />
+
+        {/* meeting routes */}
+              </Routes>
+            </StreamVideoProvider>
+          }
+        />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
       {!shouldHideNavbarFooter && <Footer />}
