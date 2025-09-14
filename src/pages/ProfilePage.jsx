@@ -19,6 +19,7 @@ import {
   KeyRound,
   Download,
   Crop,
+  Loader2,
 } from "lucide-react";
 import { toast } from "react-toastify";
 import PasswordUpdateModal from "../components/PasswordUpdateModal";
@@ -70,6 +71,7 @@ export default function ProfilePage() {
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
   const [isAvatarViewOpen, setIsAvatarViewOpen] = useState(false);
+  const [isAvatarUpdating, setIsAvatarUpdating] = useState(false); // New state for avatar loading
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -218,6 +220,7 @@ export default function ProfilePage() {
 
   // New, separate function for avatar update
   const handleAvatarUpdate = async (file) => {
+    setIsAvatarUpdating(true); // Start loading
     try {
       if (!file) {
         return;
@@ -247,6 +250,8 @@ export default function ProfilePage() {
     } catch (error) {
       console.error("Error updating avatar:", error);
       toast.error(error.message || "Failed to update avatar.");
+    } finally {
+      setIsAvatarUpdating(false); // End loading
     }
   };
 
@@ -322,6 +327,7 @@ export default function ProfilePage() {
         <p>Loading profile...</p>
       </div>
     );
+console.log(user);
 
   return (
     <div className="min-h-screen w-[90vw] md:w-[80vw] mx-auto p-4 sm:p-6 font-sans antialiased text-gray-800">
@@ -356,8 +362,15 @@ export default function ProfilePage() {
                   )}&background=3b82f6&color=fff&size=200`
             }
             alt="Profile Avatar"
-            className="w-full h-full object-cover transition-opacity duration-300"
+            className={`w-full h-full object-cover transition-opacity duration-300 ${
+              isAvatarUpdating ? "opacity-50 blur-sm" : ""
+            }`}
           />
+          {isAvatarUpdating && (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <Loader2 className="animate-spin text-gray-100 w-8 h-8" />
+            </div>
+          )}
           <div className="absolute inset-0 flex items-center justify-center bg-gray-400 bg-opacity-40 opacity-0 group-hover:opacity-80 transition-opacity duration-300">
             <Camera className="text-white w-6 h-6" />
           </div>
@@ -628,10 +641,10 @@ export default function ProfilePage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[70] flex items-center justify-center bg-white bg-opacity-20 backdrop-blur-sm"
+            className="fixed inset-0 z-[70] flex items-center justify-center bg-transparent backdrop-blur-md"
           >
-            <div className="relative w-full h-full max-w-lg max-h-lg bg-white rounded-xl shadow-xl p-4 flex flex-col">
-              <div className="relative w-full h-3/4">
+            <div className="relative w-[90%] max-w-xl bg-white rounded-xl shadow-xl p-6 flex flex-col">
+              <div className="relative w-full h-[400px]">
                 <Cropper
                   image={imageSrc}
                   crop={crop}
@@ -640,8 +653,7 @@ export default function ProfilePage() {
                   onCropChange={setCrop}
                   onZoomChange={setZoom}
                   onCropComplete={onCropComplete}
-                  cropShape="round"
-                  objectFit="contain"
+                  cropShape="round" // This prop makes the crop grid circular
                 />
               </div>
               <div className="controls mt-auto pt-4 flex flex-col items-center">
