@@ -6,6 +6,8 @@ import {
   useLocation,
   useNavigate,
 } from "react-router-dom";
+import '@stream-io/video-react-sdk/dist/css/styles.css';
+
 
 import AboutPage from "./pages/AboutPage";
 import LandingPage from "./pages/LandingPage";
@@ -27,6 +29,9 @@ import VerifyEmailPage from "./pages/VerifyEmailPage.jsx";
 import { useSelector, useDispatch } from "react-redux";
 import StreamVideoProvider from "./providers/StreamVideoProvider.jsx";
 import MeetingPage from "./pages/MeetingPage.jsx";
+
+// ✅ New imports from Stream SDK
+import { StreamCall, StreamTheme } from "@stream-io/video-react-sdk";
 
 const AppWrapper = () => {
   const location = useLocation();
@@ -120,7 +125,16 @@ const AppWrapper = () => {
           element={
             <StreamVideoProvider>
               <Routes>
-                <Route path="/:id" element={<MeetingPage />} />
+                <Route
+                  path="/:id"
+                  element={
+                    <StreamTheme>
+                      <StreamCall>
+                        <MeetingPage />
+                      </StreamCall>
+                    </StreamTheme>
+                  }
+                />
               </Routes>
             </StreamVideoProvider>
           }

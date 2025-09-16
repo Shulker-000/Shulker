@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   CallControls,
   CallParticipantsList,
@@ -7,9 +7,9 @@ import {
   PaginatedGridLayout,
   SpeakerLayout,
   useCallStateHooks,
-} from '@stream-io/video-react-sdk';
-import { useNavigate, useParams } from 'react-router-dom';
-import { Users, LayoutList } from 'lucide-react';
+} from "@stream-io/video-react-sdk";
+import { useNavigate } from "react-router-dom";
+import { Users, LayoutList } from "lucide-react";
 
 import {
   DropdownMenu,
@@ -17,104 +17,109 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from './ui/DropdownMenu.jsx';
-import Loader from './Loader';
-import EndCallButton from './EndCallButton';
-import { cn } from '../lib/utils';
-import { useGetCallById } from '../hooks/useGetCallById.jsx';
+} from "./ui/DropdownMenu.jsx";
+import Loader from "./Loader.jsx";
+import EndCallButton from "./EndCallButton.jsx";
+import { cn } from "../lib/utils";
 
 const MeetingRoom = () => {
-  const { id } = useParams();
-  const { useCallCallingState } = useCallStateHooks();
   const navigate = useNavigate();
-  const { call, isCallLoading } = useGetCallById(id);
-  const [layout, setLayout] = useState('speaker-left');
+  const [layout, setLayout] = useState("speaker-left");
   const [showParticipants, setShowParticipants] = useState(false);
+  const { useCallCallingState } = useCallStateHooks();
 
   const callingState = useCallCallingState();
 
-  if (isCallLoading || callingState !== CallingState.JOINED) {
+  if (callingState !== CallingState.JOINED) {
     return <Loader />;
   }
 
   const CallLayout = () => {
     switch (layout) {
-      case 'grid':
+      case "grid":
         return <PaginatedGridLayout />;
-      case 'speaker-right':
+      case "speaker-left":
         return <SpeakerLayout participantsBarPosition="left" />;
+      case "speaker-right":
+        return <SpeakerLayout participantsBarPosition="right" />;
       default:
         return <SpeakerLayout participantsBarPosition="right" />;
     }
   };
 
   return (
-    <section className="relative h-screen w-full overflow-hidden bg-gray-900 text-white">
-      {/* Video & Participants Section */}
-      <div className="relative flex h-[calc(100vh-96px)] w-full items-center justify-center px-2">
-        {/* Call Layout */}
-        <div className="flex size-full rounded-xl bg-gray-800/30 shadow-lg overflow-hidden">
+    <section className="relative h-screen w-full overflow-hidden bg-white text-black">
+      {/* Main video layout */}
+      <div className="relative flex size-full items-center justify-center pt-4">
+        <div className="flex size-full max-w-[1000px] items-center">
           <CallLayout />
         </div>
 
-        {/* Participants Sidebar */}
+        {/* Participants sidebar */}
         <div
           className={cn(
-            'absolute right-0 top-0 h-full bg-gray-800/95 shadow-xl transition-all duration-300 ease-in-out',
-            showParticipants ? 'w-80 opacity-100' : 'w-0 opacity-0'
+            "h-[calc(100vh-86px)] ml-2 transition-all duration-300 ease-in-out",
+            {
+              "w-[300px] block": showParticipants,
+              "w-0 hidden": !showParticipants,
+            }
           )}
         >
-          {showParticipants && (
-            <CallParticipantsList onClose={() => setShowParticipants(false)} />
-          )}
+          <CallParticipantsList onClose={() => setShowParticipants(false)} />
         </div>
       </div>
 
-      {/* Bottom Controls */}
-      <div className="fixed bottom-0 flex w-full items-center justify-center gap-4 border-t border-gray-700 bg-gray-900/95 px-4 py-3 shadow-lg">
-        {/* Full Call Controls */}
+      {/* Controls bar */}
+      <div className="fixed bottom-0 flex w-full items-center justify-center gap-5 border-t border-gray-300 bg-white/95 px-4 py-3 shadow-lg">
         <CallControls
-          onLeave={() => navigate(`/`)}
-          micButton
-          cameraButton
-          screenShareButton
-          settingsButton
+          onLeave={() => navigate("/")}
+          controls={[
+            "microphone",
+            "camera",
+            "screenshare",
+            "settings",
+            "leave-call",
+          ]}
         />
 
-        {/* Layout Switcher */}
+        {/* Layout switcher */}
         <DropdownMenu>
-          <DropdownMenuTrigger className="rounded-full bg-gray-700 p-2 hover:bg-gray-600 transition-colors">
-            <LayoutList size={20} />
+          <DropdownMenuTrigger className="cursor-pointer rounded-full bg-gray-200 p-2 hover:bg-gray-300 transition-colors">
+            <LayoutList size={20} className="text-gray-800" />
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="border border-gray-700 bg-gray-800 text-white shadow-lg">
-            {['Grid', 'Speaker-Left', 'Speaker-Right'].map((item, index) => (
-              <div key={index}>
+          <DropdownMenuContent className="border border-gray-300 bg-gray-100 text-black shadow-lg">
+            {[
+              { key: "grid", label: "Grid" },
+              { key: "speaker-left", label: "Speaker-Left" },
+              { key: "speaker-right", label: "Speaker-Right" },
+            ].map((item, index) => (
+              <div key={item.key}>
                 <DropdownMenuItem
-                  onClick={() => setLayout(item.toLowerCase())}
-                  className="cursor-pointer hover:bg-gray-700"
+                  onClick={() => setLayout(item.key)}
+                  className="cursor-pointer hover:bg-gray-200"
                 >
-                  {item}
+                  {item.label}
                 </DropdownMenuItem>
                 {index < 2 && (
-                  <DropdownMenuSeparator className="border-gray-700" />
+                  <DropdownMenuSeparator className="border-gray-300" />
                 )}
               </div>
             ))}
           </DropdownMenuContent>
         </DropdownMenu>
 
-        {/* Call Stats */}
+        {/* Call stats */}
         <CallStatsButton />
 
-        {/* Participants Toggle */}
+        {/* Participants toggle */}
         <button
           onClick={() => setShowParticipants((prev) => !prev)}
-          className="rounded-full bg-gray-700 p-2 hover:bg-gray-600 transition-colors"
+          className="rounded-full bg-gray-200 p-2 hover:bg-gray-300 transition-colors"
         >
-          <Users size={20} />
+          <Users size={20} className="text-gray-800" />
         </button>
 
-        {/* End Call */}
+        {/* End call */}
         <EndCallButton />
       </div>
     </section>
