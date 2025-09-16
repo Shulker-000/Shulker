@@ -1,11 +1,8 @@
-// src/pages/AboutPage.js
-
 import React from "react";
 import { motion } from "framer-motion";
 import { teamMembers } from "../constants/teamData.js";
 import TeamMemberCard from "../components/TeamMemberCard.jsx";
 
-// Animation variants defined outside the component
 const headerVariants = {
   hidden: { opacity: 0, y: -40 },
   visible: {
@@ -19,7 +16,6 @@ const AboutPage = () => {
   return (
     <div className="min-h-screen w-full bg-gray-50 font-sans p-4 sm:p-8">
       <div className="max-w-6xl mx-auto">
-        {/* --- Header Section --- */}
         <motion.header
           className="text-center mb-16"
           initial="hidden"
@@ -37,7 +33,6 @@ const AboutPage = () => {
           </p>
         </motion.header>
 
-        {/* --- Team Section --- */}
         <div className="text-center mb-16">
           <h2 className="text-3xl font-bold text-gray-800">
             The Minds Behind the Mission
