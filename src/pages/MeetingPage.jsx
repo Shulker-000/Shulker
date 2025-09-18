@@ -15,31 +15,21 @@ const MeetingPage = () => {
   const { call, isCallLoading } = useGetCallById(id);
   const [isSetupComplete, setIsSetupComplete] = useState(false);
 
-  // Loading state
   if (!user || isCallLoading) {
     return (
-      <div className="flex flex-col items-center justify-center h-screen bg-gray-200">
+      <div className="flex flex-col items-center justify-center h-screen bg-white text-black">
         <Loader className="animate-spin text-gray-700 w-16 h-16" />
-        <p className="mt-4 text-lg font-medium text-gray-700">
+        <p className="mt-4 text-lg font-medium">
           Preparing your meeting...
         </p>
       </div>
     );
   }
 
-
-  // Call not found state
   if (!call) {
-
-    console.error("Call Not Found. Debug Info:", {
-      meetingId: id,
-      user,
-      isCallLoading,
-    });
-
     return (
-      <div className="flex flex-col items-center justify-center h-screen bg-gray-200">
-        <p className="text-3xl font-bold text-gray-800">Call Not Found</p>
+      <div className="flex flex-col items-center justify-center h-screen bg-white text-black">
+        <p className="text-3xl font-bold">Call Not Found</p>
         <p className="mt-2 text-gray-600">
           The meeting you are looking for does not exist or has ended.
         </p>
@@ -47,22 +37,20 @@ const MeetingPage = () => {
     );
   }
 
-  // Not allowed state
-  const notAllowed =
+  const isUserNotAllowed =
     call.type === "invited" &&
-    !call.state.members.find((m) => m.user.id === user.id);
+    (!user || !call.state.members.find((m) => m.user.id === user.id));
 
-  if (notAllowed) {
+  if (isUserNotAllowed) {
     return (
-      <div className="flex items-center justify-center h-screen bg-gray-200">
+      <div className="flex items-center justify-center h-screen bg-white">
         <Alert title="Access Denied" description="You are not allowed to join this meeting." />
       </div>
     );
   }
 
-  // Main meeting screen
   return (
-    <main className="h-screen w-full bg-gray-200 flex items-center justify-center">
+    <main className="h-screen w-full bg-white flex items-center justify-center">
       <StreamCall call={call}>
         <StreamTheme>
           {!isSetupComplete ? (
