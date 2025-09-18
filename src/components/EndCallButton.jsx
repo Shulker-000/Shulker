@@ -27,9 +27,13 @@ const EndCallButton = () => {
   };
 
   return (
-    <Button onClick={endCall} className="bg-red-500">
-      End call for everyone
-    </Button>
+<button
+  onClick={endCall}
+  className="px-6 py-2 bg-red-600 text-white font-medium rounded-full hover:bg-red-700transition"
+>
+  End call for everyone
+</button>
+
   );
 };
 

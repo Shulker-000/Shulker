@@ -1,10 +1,20 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Mail, Lock, Eye, EyeOff, ArrowRight, User, Check, XIcon, Home } from "lucide-react";
+import {
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  ArrowRight,
+  User,
+  Check,
+  XIcon,
+  Home,
+} from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import signUpImage from "../assets/images/pages/signUp.png"
+import signUpImage from "../assets/images/pages/signUp.png";
 
 // --- Modal Component for Terms and Privacy Policy ---
 const Modal = ({ isOpen, onClose, title, children }) => {
@@ -165,50 +175,47 @@ const RegisterPage = () => {
     setIsLoading(true);
 
     try {
-      const res = await fetch(`${backend_url}/api/v1/users/register`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          username: formData.username,
-          email: formData.email,
-          password: formData.password,
-        }),
-      });
+  const res = await fetch(`${backend_url}/api/v1/users/register`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      username: formData.username,
+      email: formData.email,
+      password: formData.password,
+    }),
+  });
 
-      const responseData = await res.json().catch(() => null);
+  // Parse only once
+  const responseData = await res.json().catch(() => null);
 
-      if (res.ok) {
-        toast.success(
-          responseData?.message || "Registration successful! Redirecting..."
-        );
-        setTimeout(() => {
-          navigate("/login");
-        }, 2000);
-      } else {
-        const errorMessage = responseData?.message;
-        if (res.status === 409) {
-          toast.error(
-            errorMessage ||
-              "An account with this username or email already exists."
-          );
-        } else if (res.status === 400) {
-          toast.error(errorMessage || "Please check your input and try again.");
-        } else {
-          toast.error(
-            errorMessage || "Registration failed. Please try again later."
-          );
-        }
-      }
-    } catch (error) {
-      console.error("Registration network error:", error);
+  if (res.ok) {
+    toast.success(
+      responseData?.message || "Registration successful! Redirecting..."
+    );
+    setTimeout(() => {
+      navigate("/login");
+    }, 2000);
+  } else {
+    const errorMessage = responseData?.message;
+    if (res.status === 409) {
       toast.error(
-        "A network error occurred. Please check your connection and try again."
+        errorMessage || "An account with this username or email already exists."
       );
-    } finally {
-      setIsLoading(false);
+    } else if (res.status === 400) {
+      toast.error(errorMessage || "Please check your input and try again.");
+    } else {
+      toast.error(errorMessage || "Registration failed. Please try again later.");
     }
+  }
+} catch (error) {
+  console.error("Registration network error:", error);
+  toast.error(
+    "A network error occurred. Please check your connection and try again."
+  );
+} finally {
+  setIsLoading(false);
+}
+
   };
 
   const openModal = (type) => {

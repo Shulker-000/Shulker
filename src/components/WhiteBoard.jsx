@@ -1,22 +1,37 @@
-import React from "react";
+import React, { useRef } from "react";
 import { Tldraw } from "@tldraw/tldraw";
 import "@tldraw/tldraw/tldraw.css";
-import { useNavigate } from "react-router-dom";
 
 const Whiteboard = () => {
-  const navigate = useNavigate();
+  const appRef = useRef(null);
+
+  const handleReset = () => {
+    if (appRef.current) {
+      // Clear all shapes
+      appRef.current.shapes.forEach(shape => {
+        appRef.current.deleteShapes([shape.id]);
+      });
+      // Clear pages if multiple pages exist
+      appRef.current.pages.forEach(page => {
+        if (page.id !== appRef.current.currentPageId) {
+          appRef.current.deletePage(page.id);
+        }
+      });
+      // Reset camera
+      appRef.current.resetCamera();
+    }
+  };
 
   return (
     <div className="relative w-screen h-screen">
-      <Tldraw />
+      {/* Overlay to hide watermark */}
+      <div className="absolute inset-0 z-[9999] pointer-events-none"></div>
 
-      {/* Floating Go Back Button */}
-      <button
-        onClick={() => navigate(-1)}
-        className="absolute bottom-12 right-2 cursor-pointer z-50 px-4 py-2 bg-white bg-opacity-90 text-black text-sm font-semibold border border-gray-300 rounded-lg shadow-md backdrop-blur hover:bg-opacity-100 transition"
-      >
-        Go Back
-      </button>
+      <Tldraw
+        onMount={(app) => {
+          appRef.current = app;
+        }}
+      />
     </div>
   );
 };

@@ -1,0 +1,352 @@
+/* --- Core Modals & Containers --- */
+.str-video__menu,
+.str-video__generic-menu,
+.str-video__device-settings,
+.str-video__notification,
+.str-video__call-stats {
+  background: #ffffff !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 0.75rem !important;
+  padding: 1rem !important;
+  color: #111827 !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08) !important;
+  font-family: "Inter", sans-serif !important;
+}
+
+/* Headings & Labels */
+.str-video__menu h3,
+.str-video__device-settings h3,
+.str-video__menu label,
+.str-video__device-settings label {
+  color: #111827 !important;
+  font-weight: 600 !important;
+}
+
+/* Generic text inside menus */
+.str-video__menu *,
+.str-video__device-settings *,
+.str-video__notification *,
+.str-video__call-stats * {
+  color: #111827 !important;
+}
+
+/* --- Dropdown Items & Options --- */
+.str-video__menu-option,
+.str-video__device-option{
+  background: #f9fafb !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 0.5rem !important;
+  margin-bottom: 0.5rem !important;
+  padding: 0.75rem 1rem !important;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer !important;
+  color: #111827 !important;
+}
+
+/* Buttons inside menu items */
+.str-video__generic-menu--item button {
+  background: #f3f4f6 !important;
+  color: #111827 !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 0.5rem !important;
+  padding: 0.5rem 0.75rem !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.str-video__generic-menu--item button:hover {
+  background: #e5e7eb !important;
+  color: #1e40af !important;
+}
+
+/* Hover & selected states */
+.str-video__menu-option:hover,
+.str-video__device-option:hover,
+.str-video__generic-menu--item:hover {
+  background: #f3f4f6 !important;
+  color: #1e40af !important;
+}
+
+.str-video__menu-option--selected,
+.str-video__device-option.selected,
+.str-video__generic-menu--item--selected {
+  background: #e0f2fe !important;
+  border-color: #38bdf8 !important;
+  color: #1e40af !important;
+  font-weight: 600 !important;
+}
+
+/* --- Radio & Checkbox --- */
+.str-video__device-option input[type="radio"],
+.str-video__device-option input[type="checkbox"] {
+  background-color: #ffffff !important;
+  border: 1px solid #d1d5db !important;
+}
+
+.str-video__device-option input[type="radio"]:checked::after {
+  background-color: #2563eb !important;
+}
+
+/* --- Primary & Secondary Buttons --- */
+.str-video__join-meeting-button,
+.str-video__device-buttons-container button:not(.secondary),
+button.bg-blue-600 {
+  background: #2563eb !important;
+  color: #ffffff !important;
+  border-radius: 9999px !important;
+  /* padding: 0.75rem 1.5rem !important; */
+  font-weight: 500 !important;
+  border: none !important;
+  transition: background 0.2s ease;
+}
+
+.str-video__join-meeting-button:hover,
+.str-video__device-buttons-container button:not(.secondary):hover,
+button.bg-blue-600:hover {
+  background: #1e40af !important;
+}
+
+.str-video__device-buttons-container button.secondary,
+button.bg-gray-200 {
+  background: #f9fafb !important;
+  color: #2563eb !important;
+  border: 1px solid #e5e7eb !important;
+}
+
+.str-video__device-buttons-container button.secondary:hover,
+button.bg-gray-200:hover {
+  background: #f3f4f6 !important;
+}
+
+/* --- Video Preview --- */
+.str-video__preview-container,
+.str-video__preview {
+  border-radius: 0.5rem !important;
+  background: #f9fafb !important;
+  border: 1px solid #e5e7eb !important;
+}
+
+/* --- Participants --- */
+/* --- Participant List Seamless --- */
+.str-video__participant-list {
+  background: transparent !important;       /* main container background */
+  border-radius: 0 !important;          /* no card rounding */
+  margin: 0 !important;                 /* flush with surrounding layout */
+  padding: 10px !important;                /* no inner padding */
+  display: flex;
+  flex-direction: column;
+  height: 100% !important;              /* full height of parent container */
+  overflow-y: auto !important;          /* scroll if too many participants */
+  box-shadow: none !important;          /* remove extra shadow */
+}
+
+/* Each participant stretches full width, seamless */
+.str-video__participant {
+  background: transparent !important;       /* same as container */
+  border: none !important;              /* remove borders */
+  padding: 0.75rem 1rem !important;
+  color: #111827 !important;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: background 0.2s ease;
+}
+
+/* Hover effect */
+.str-video__participant:hover {
+  background: #fff !important;       /* subtle highlight for feedback */
+}
+
+
+/* video */
+/* Participant name */
+.str-video__participant-details__name {
+  color: #dcd7d7 !important;
+  font-weight: 600 !important;
+  font-size: 0.95rem !important;
+  line-height: 1.4 !important;
+}
+
+/* Device type/label text */
+.str-video__device-settings__device-type,
+.str-video__device-settings__device-label {
+  font-size: 0.85rem !important;
+  font-weight: 500 !important;
+  color: #6b7280 !important;
+  margin-bottom: 0.25rem !important;
+  display: block;
+}
+
+
+/* --- Device Settings Menu (Light Theme with Spacing) --- */
+.str-video__menu-container {
+  background: #ffffff !important;
+  margin: 1rem !important;          /* outer margin */
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08) !important;
+  max-height: 70vh !important;
+  overflow-y: auto !important;
+}
+
+
+/* Device kind container */
+.str-video__device-settings__device-kind {
+  display: flex;
+  flex-direction: column;
+  gap: 0rem;
+}
+
+/* Device options (radio + label) */
+.str-video__device-settings__option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem !important;
+  background: #f9fafb !important;
+  font-size: 0.9rem !important;
+  color: #111827 !important;
+  cursor: pointer !important;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+/* Hover effect */
+.str-video__device-settings__option:hover {
+  background: #f3f4f6 !important;
+  border-color: #d1d5db !important;
+  color: #1e40af !important;
+}
+
+/* Selected option */
+.str-video__device-settings__option--selected {
+  background: #e0f2fe !important;
+  border-color: #38bdf8 !important;
+  color: #1e40af !important;
+  font-weight: 600 !important;
+}
+
+/* Radio buttons */
+.str-video__device-settings__option input[type="radio"] {
+  accent-color: #2563eb !important; /* modern browsers */
+  margin-right: 0.5rem;
+}
+
+
+/* --- Search Input --- */
+.str-video__search-input__container {
+  background: #f9fafb !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 0.5rem !important;
+  padding: 0.5rem 0.75rem !important;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.str-video__search-input__container input {
+  background: transparent !important;
+  border: none !important;
+  outline: none !important;
+  font-size: 0.9rem !important;
+  color: #111827 !important;
+  width: 100%;
+}
+
+.str-video__search-input__container input::placeholder {
+  color: #9ca3af !important;
+}
+
+/* --- Stream Icons --- */
+.str-video__icon,
+.str-video__icon--mute,
+.str-video__icon--camera,
+.str-video__icon--screen-share,
+.str-video__icon--caret-up,
+.str-video__icon--caret-down {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25rem !important;
+  height: 1.25rem !important;
+  border-radius: 50% !important;
+  background: #f3f4f6 !important;
+  color: #2563eb !important;
+  cursor: pointer !important;
+}
+
+.str-video__icon--pin,
+.str-video__icon--no-audio,
+.str-video__icon--kick-user,
+.str-video__icon--camera-off-outline,
+.str-video__icon--not-allowed {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25rem !important; /* original size */
+  height: 1.25rem !important; /* original size */
+  border-radius: 50% !important;
+  background: #000 !important;
+  color: #2563eb !important;
+  cursor: pointer;
+}
+
+/* Call End Button */
+.str-video__call-controls__button--variant-danger{
+  background: red !important;
+  color: #dc2626 !important;
+  padding-left: 25px;
+  padding-right: 25px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+
+
+.str-video__icon svg {
+  fill: currentColor !important;
+  width: 1.25rem !important;
+  height: 1.25rem !important;
+}
+
+/* --- Call Stats Cards --- */
+.str-video__call-stats {
+  background: #ffffff !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 0.5rem !important;
+  max-width: 75vw !important;
+  margin: 0 auto !important;
+}
+
+.str-video__call-stats__card {
+  background: #f9fafb !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 0.5rem !important;
+}
+
+/* --- Composite Buttons --- */
+.str-video__composite-button__button-group {
+  background: #2563eb !important;
+  border-radius: 9999px !important;
+  transition: background 0.2s ease;
+}
+
+.str-video__composite-button__button-group:hover {
+  background: #1947aa !important;
+}
+
+/* --- Hide Watermarks --- */
+.tl-watermark_SEE-LICENSE {
+  display: none !important;
+  pointer-events: none !important;
+}
+
+/* --- Generic Hover Cursor --- */
+button:hover,
+.str-video__menu-option:hover,
+.str-video__device-option:hover,
+.str-video__generic-menu--item:hover,
+.str-video__icon:hover {
+  cursor: pointer !important;
+}

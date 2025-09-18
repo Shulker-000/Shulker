@@ -1,5 +1,12 @@
 @import "tailwindcss";
 
-button:hover{
-    cursor: pointer;
+
+.tl-watermark_SEE-LICENSE {
+  display: none !important;
+  pointer-events: none !important;
+}
+
+
+button:hover {
+  cursor: pointer;
 }
