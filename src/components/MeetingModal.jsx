@@ -1,5 +1,11 @@
 import React from "react";
-import { Dialog, DialogContent, DialogTitle, DialogDescription } from "./ui/Dialog.jsx";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogDescription,
+  DialogOverlay,
+} from "./ui/Dialog.jsx";
 import { Button } from "./ui/button.jsx";
 import { cn } from "../lib/utils.js";
 
@@ -7,46 +13,58 @@ const MeetingModal = ({
   isOpen,
   onClose,
   title,
-  className,
   children,
   handleClick,
   buttonText,
-  instantMeeting,
   image,
   buttonClassName,
   buttonIcon,
-  description, // <-- optional prop
+  description,
 }) => {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
+      {/* Blurred, light overlay */}
+      <DialogOverlay className="fixed inset-0 backdrop-blur-md bg-white/30" />
+
       <DialogContent
-        className="flex w-full max-w-[520px] flex-col gap-6 border-none bg-dark-1 px-6 py-9 text-white"
-        aria-describedby={description ? undefined : undefined} // prevents warning if no desc
+        className={cn(
+          "fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50",
+          "w-full max-w-lg p-10 flex flex-col gap-8 rounded-3xl border border-gray-300",
+          "bg-gray-100/80 text-gray-800 shadow-2xl backdrop-blur-md",
+          "transition-all duration-300 ease-out scale-100"
+        )}
       >
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-6 text-center">
           {image && (
             <div className="flex justify-center">
-              <img src={image} alt="checked" width={72} height={72} />
+              <img
+                src={image}
+                alt="checked"
+                width={84}
+                height={84}
+                className="drop-shadow-md"
+              />
             </div>
           )}
 
-          {/* Accessible title */}
           <DialogTitle asChild>
-            <h1 className={cn("text-3xl font-bold leading-[42px]", className)}>
+            <h1 className="text-3xl sm:text-4xl font-extrabold leading-tight text-gray-800">
               {title}
             </h1>
           </DialogTitle>
 
-          {/* Accessible description (optional) */}
           {description && (
-            <DialogDescription>{description}</DialogDescription>
+            <DialogDescription className="text-gray-700 text-base sm:text-lg leading-relaxed">
+              {description}
+            </DialogDescription>
           )}
 
           {children}
 
           <Button
             className={cn(
-              "bg-blue-1 focus-visible:ring-0 focus-visible:ring-offset-0",
+              "bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl",
+              "shadow-lg transition-all duration-200 ease-in-out hover:scale-[1.02]",
               buttonClassName
             )}
             onClick={handleClick}
@@ -54,12 +72,12 @@ const MeetingModal = ({
             {buttonIcon && (
               <img
                 src={buttonIcon}
-                alt="button icon"
-                width={13}
-                height={13}
+                alt="icon"
+                width={18}
+                height={18}
+                className="mr-2 inline-block"
               />
             )}
-            &nbsp;
             {buttonText || "Schedule Meeting"}
           </Button>
         </div>

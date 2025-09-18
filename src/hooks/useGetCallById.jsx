@@ -10,10 +10,6 @@ export const useGetCallById = (id) => {
   const client = useStreamVideoClient();
   const user = useSelector((state) => state.auth.user);
 
-console.log("Client: ", client);
-console.log("user: ", user);
-console.log("id: ", id);
-
   useEffect(() => {
     if (!client || !id || !user) {
       setIsCallLoading(false);

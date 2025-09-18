@@ -6,9 +6,8 @@ import {
   useLocation,
   useNavigate,
 } from "react-router-dom";
-import '@stream-io/video-react-sdk/dist/css/styles.css';
-
-
+import "@stream-io/video-react-sdk/dist/css/styles.css";
+import "./custom-stream.css"
 import AboutPage from "./pages/AboutPage";
 import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
@@ -30,8 +29,23 @@ import { useSelector, useDispatch } from "react-redux";
 import StreamVideoProvider from "./providers/StreamVideoProvider.jsx";
 import MeetingPage from "./pages/MeetingPage.jsx";
 
-// ✅ New imports from Stream SDK
+// ✅ Stream SDK
 import { StreamCall, StreamTheme } from "@stream-io/video-react-sdk";
+
+// ✅ Light theme object for Stream UI
+const lightTheme = {
+  colors: {
+    primary: "#1D4ED8", // Blue
+    background: "#ffffff", // Page background
+    surface: "#f9f9f9", // Cards, modals, panels
+    textHighEmphasis: "#111111", // Main text
+    textLowEmphasis: "#555555", // Secondary text
+    border: "#e5e5e5", // Divider lines
+    danger: "#dc2626", // Errors
+    success: "#16a34a", // Success states
+    interactive: "#2563eb", // Buttons / active controls
+  },
+};
 
 const AppWrapper = () => {
   const location = useLocation();
@@ -70,7 +84,6 @@ const AppWrapper = () => {
     }
   }, [user, location.pathname, navigate, rehydrated]);
 
-  // Routes where Navbar & Footer should be hidden
   const hideNavbarFooterRoutes = [
     "whiteboard",
     "login",
@@ -128,7 +141,8 @@ const AppWrapper = () => {
                 <Route
                   path="/:id"
                   element={
-                    <StreamTheme>
+                    // ✅ Light themed StreamCall wrapper
+                    <StreamTheme theme={lightTheme}>
                       <StreamCall>
                         <MeetingPage />
                       </StreamCall>

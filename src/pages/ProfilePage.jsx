@@ -327,7 +327,6 @@ export default function ProfilePage() {
         <p>Loading profile...</p>
       </div>
     );
-console.log(user);
 
   return (
     <div className="min-h-screen w-[90vw] md:w-[80vw] mx-auto p-4 sm:p-6 font-sans antialiased text-gray-800">

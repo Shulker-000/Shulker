@@ -23,8 +23,6 @@ export default function VerifyEmailPage() {
       );
       
       const data = await response.json();
-      console.log(data);
-      console.log(data.message);
       if (!response.ok || !data.success) {
         throw new Error(
           data.message || data.data?.message || "Verification failed"
