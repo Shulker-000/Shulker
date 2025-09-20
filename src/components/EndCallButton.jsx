@@ -1,14 +1,15 @@
-import React from 'react';
-import { useCall, useCallStateHooks } from '@stream-io/video-react-sdk';
-import { useNavigate } from 'react-router-dom';
-import { Button } from './ui/button';
+import React from "react";
+import { useCall, useCallStateHooks } from "@stream-io/video-react-sdk";
+import { useNavigate } from "react-router-dom";
 
 const EndCallButton = () => {
   const call = useCall();
   const navigate = useNavigate();
 
   if (!call) {
-    throw new Error('useStreamCall must be used within a StreamCall component.');
+    throw new Error(
+      "useStreamCall must be used within a StreamCall component."
+    );
   }
 
   const { useLocalParticipant } = useCallStateHooks();
@@ -22,18 +23,27 @@ const EndCallButton = () => {
   if (!isMeetingOwner) return null;
 
   const endCall = async () => {
-    await call.endCall();
-    navigate('/');
+    try {
+      await call.endCall(); // ends meeting for everyone
+      await call.leave();
+      navigate("/");
+    } catch (err) {
+      console.error("Error ending call:", err);
+    } finally {
+      navigate("/");
+    }
   };
 
   return (
-<button
-  onClick={endCall}
-  className="px-6 py-2 bg-red-600 text-white font-medium rounded-full hover:bg-red-700transition"
->
-  End call for everyone
-</button>
-
+    <button
+      onClick={endCall}
+      className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 
+                 bg-red-600 text-white text-sm sm:text-base 
+                 font-medium rounded-full 
+                 hover:bg-red-700 transition duration-200"
+    >
+      End call for everyone
+    </button>
   );
 };
 

@@ -1,7 +1,15 @@
 import React, { useState } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { Calendar, Users, Video, ArrowRight, FileText, Timer, Link2 } from "lucide-react";
+import {
+  Calendar,
+  Users,
+  Video,
+  ArrowRight,
+  FileText,
+  Timer,
+  Link2,
+} from "lucide-react";
 import { useStreamVideoClient } from "@stream-io/video-react-sdk";
 import { v4 as uuidv4 } from "uuid";
 
@@ -75,7 +83,8 @@ const Dashboard = () => {
 
       if (!call) throw new Error("Failed to create call object.");
 
-      const startsAt = values.dateTime.toISOString() || new Date().toISOString();
+      const startsAt =
+        values.dateTime.toISOString() || new Date().toISOString();
       const description = values.description || "Instant Meeting";
 
       await call.getOrCreate({
@@ -124,7 +133,9 @@ const Dashboard = () => {
         <div className="lg:col-span-2 xl:col-span-3 space-y-6">
           {/* Quick Actions */}
           <section className="bg-white p-6 rounded-3xl shadow-lg">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Quick Actions</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">
+              Quick Actions
+            </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {/* Start Meeting */}
               <button
@@ -133,7 +144,9 @@ const Dashboard = () => {
               >
                 <Video className="w-8 h-8 mb-2" />
                 <span className="font-semibold text-lg">Start Meeting</span>
-                <span className="text-sm text-purple-600">Begin instantly.</span>
+                <span className="text-sm text-purple-600">
+                  Begin instantly.
+                </span>
               </button>
 
               {/* Schedule Meeting */}
@@ -147,10 +160,15 @@ const Dashboard = () => {
               </button>
 
               {/* Past Meetings */}
-              <button className="flex flex-col items-start p-6 bg-green-100 text-green-800 rounded-2xl transition-transform transform hover:scale-105 hover:bg-green-200">
+              <button
+                onClick={() => navigate("/past-meetings")}
+                className="flex flex-col items-start p-6 bg-green-100 text-green-800 rounded-2xl transition-transform transform hover:scale-105 hover:bg-green-200"
+              >
                 <FileText className="w-8 h-8 mb-2" />
                 <span className="font-semibold text-lg">Past Meetings</span>
-                <span className="text-sm text-green-600">Review previous calls.</span>
+                <span className="text-sm text-green-600">
+                  Review previous calls.
+                </span>
               </button>
 
               {/* Join Meeting */}
@@ -160,7 +178,9 @@ const Dashboard = () => {
               >
                 <Link2 className="w-8 h-8 mb-2" />
                 <span className="font-semibold text-lg">Join Meeting</span>
-                <span className="text-sm text-yellow-600">Enter a link to join.</span>
+                <span className="text-sm text-yellow-600">
+                  Enter a link to join.
+                </span>
               </button>
             </div>
           </section>
@@ -168,7 +188,9 @@ const Dashboard = () => {
           {/* Upcoming Meetings */}
           <section className="bg-white p-6 rounded-3xl shadow-lg">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-bold text-gray-900">Upcoming Meetings</h2>
+              <h2 className="text-2xl font-bold text-gray-900">
+                Upcoming Meetings
+              </h2>
               <button className="flex items-center text-purple-600 hover:text-purple-800 transition-colors">
                 See All <ArrowRight className="ml-2 w-4 h-4" />
               </button>
@@ -181,7 +203,9 @@ const Dashboard = () => {
                     className="p-4 rounded-2xl bg-gray-50 flex flex-col sm:flex-row justify-between items-start sm:items-center"
                   >
                     <div className="flex-1 space-y-1">
-                      <div className="text-lg font-semibold">{meeting.title}</div>
+                      <div className="text-lg font-semibold">
+                        {meeting.title}
+                      </div>
                       <div className="text-sm text-gray-500 flex items-center space-x-2">
                         <Calendar className="w-4 h-4" />
                         <span>
@@ -216,7 +240,9 @@ const Dashboard = () => {
             <div className="grid grid-cols-1 gap-4">
               <div className="p-4 rounded-2xl bg-purple-50 flex flex-col items-center justify-center text-center">
                 <Calendar className="w-8 h-8 text-purple-500" />
-                <h3 className="text-xl font-bold mt-2">{upcomingMeetings.length}</h3>
+                <h3 className="text-xl font-bold mt-2">
+                  {upcomingMeetings.length}
+                </h3>
                 <p className="text-sm text-gray-500">Upcoming</p>
               </div>
               <div className="p-4 rounded-2xl bg-red-50 flex flex-col items-center justify-center text-center">
@@ -242,8 +268,10 @@ const Dashboard = () => {
               Add a description
             </label>
             <Textarea
-            className = "focus-visible:ring-0 focus-visible:ring-offset-0"
-              onChange={(e) => setValues({ ...values, description: e.target.value })}
+              className="focus-visible:ring-0 focus-visible:ring-offset-0"
+              onChange={(e) =>
+                setValues({ ...values, description: e.target.value })
+              }
             />
           </div>
         </MeetingModal>
@@ -263,30 +291,29 @@ const Dashboard = () => {
         />
       )}
 
-<MeetingModal
-  isOpen={meetingState === "isJoiningMeeting"}
-  onClose={() => {
-    setMeetingState(undefined);
-    setValues({ ...values, link: "" }); // clear link on close
-  }}
-  title="Join a Meeting"
-  className="text-center"
-  buttonText="Join Meeting"
-  handleClick={() => {
-    if (values.link.trim()) {
-      navigate(`/meetings/${values.link.trim()}`);
-    }
-  }}
->
-  <Input
-    type="text"
-    placeholder="Enter meeting link or ID"
-    value={values.link}
-    onChange={(e) => setValues({ ...values, link: e.target.value })}
-    className="focus-visible:ring-0 focus-visible:ring-offset-0"
-  />
-</MeetingModal>
-
+      <MeetingModal
+        isOpen={meetingState === "isJoiningMeeting"}
+        onClose={() => {
+          setMeetingState(undefined);
+          setValues({ ...values, link: "" }); // clear link on close
+        }}
+        title="Join a Meeting"
+        className="text-center"
+        buttonText="Join Meeting"
+        handleClick={() => {
+          if (values.link.trim()) {
+            navigate(`/meetings/${values.link.trim()}`);
+          }
+        }}
+      >
+        <Input
+          type="text"
+          placeholder="Enter meeting link or ID"
+          value={values.link}
+          onChange={(e) => setValues({ ...values, link: e.target.value })}
+          className="focus-visible:ring-0 focus-visible:ring-offset-0"
+        />
+      </MeetingModal>
 
       <MeetingModal
         isOpen={meetingState === "isInstantMeeting"}

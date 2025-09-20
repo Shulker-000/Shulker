@@ -53,9 +53,14 @@ const MeetingModal = ({
             </h1>
           </DialogTitle>
 
-          {description && (
+          {/* Fix: Always render the DialogDescription component for accessibility */}
+          {description ? (
             <DialogDescription className="text-gray-700 text-base sm:text-lg leading-relaxed">
               {description}
+            </DialogDescription>
+          ) : (
+            <DialogDescription asChild>
+              <span className="sr-only">Meeting details</span>
             </DialogDescription>
           )}
 

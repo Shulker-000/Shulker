@@ -107,7 +107,7 @@ const MeetingRoom = () => {
       <StreamTheme as="main" mode="light" className="h-full w-full">
         <div className="flex w-full h-[calc(100vh-64px)] justify-center items-center">
           {/* Video Layout */}
-          <div className="flex size-full items-center justify-center max-w-[1000px] transition-all duration-300">
+          <div className="flex size-full w-[100vw] items-center justify-center max-w-[1000px] transition-all duration-300">
             <CallLayout />
           </div>
 
@@ -217,31 +217,6 @@ const MeetingRoom = () => {
               title="Participants"
             >
               <Users size={20} className="text-gray-800" />
-            </button>
-
-            {/* Chat Toggle */}
-            <button
-              onClick={() => {
-                setShowChat((prev) => !prev);
-                setShowParticipants(false);
-              }}
-              className="rounded-full bg-gray-200 p-3 hover:bg-gray-300 transition-colors"
-              title="Chat"
-            >
-              <MessageCircle size={20} className="text-gray-800" />
-            </button>
-
-            {/* Captions Toggle */}
-            <button
-              onClick={toggleCaptions}
-              className={`rounded-full p-3 transition-colors ${
-                isCaptioningInProgress
-                  ? "bg-red-600 hover:bg-red-700 text-white"
-                  : "bg-gray-200 hover:bg-gray-300 text-gray-800"
-              }`}
-              title={isCaptioningInProgress ? "Stop Captions" : "Start Captions"}
-            >
-              <CaptionsIcon size={20} />
             </button>
 
             {/* Copy Link */}
