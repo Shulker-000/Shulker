@@ -25,12 +25,10 @@ const EndCallButton = () => {
   const endCall = async () => {
     try {
       await call.endCall(); // ends meeting for everyone
-      await call.leave();
-      navigate("/");
     } catch (err) {
       console.error("Error ending call:", err);
     } finally {
-      navigate("/");
+      navigate("/"); // redirect after ending
     }
   };
 

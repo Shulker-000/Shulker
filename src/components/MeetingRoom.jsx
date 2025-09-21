@@ -11,21 +11,13 @@ import {
   useCall,
   StreamTheme,
 } from "@stream-io/video-react-sdk";
-import {
-  Chat,
-  Channel,
-  MessageList,
-  MessageInput,
-} from "stream-chat-react";
 import { useNavigate } from "react-router-dom";
 import {
   Users,
   LayoutList,
   Copy,
   Check,
-  MessageCircle,
   SquarePen,
-  CaptionsIcon,
 } from "lucide-react";
 
 import {
@@ -39,13 +31,18 @@ import Loader from "./Loader.jsx";
 import EndCallButton from "./EndCallButton.jsx";
 import { cn } from "../lib/utils";
 import "../index.css";
-import "../custom-stream.css";
+import { useSelector } from "react-redux";
 
 const MeetingRoom = () => {
   const navigate = useNavigate();
+  const user = useSelector((state) => state.auth.user);
+
+  if (!user.isEmailVerified) {
+    return navigate("/profile");
+  }
+
   const [layout, setLayout] = useState("grid");
   const [showParticipants, setShowParticipants] = useState(false);
-  const [showChat, setShowChat] = useState(false);
   const [copied, setCopied] = useState(false);
 
   const {
@@ -90,18 +87,6 @@ const MeetingRoom = () => {
     }
   };
 
-  const toggleCaptions = async () => {
-    try {
-      if (isCaptioningInProgress) {
-        await call.stopClosedCaptions();
-      } else {
-        await call.startClosedCaptions({ language: "en" });
-      }
-    } catch (error) {
-      console.error("Failed to toggle captions:", error);
-    }
-  };
-
   return (
     <section className="relative h-screen w-full overflow-hidden bg-gray-50 text-gray-900">
       <StreamTheme as="main" mode="light" className="h-full w-full">
@@ -120,25 +105,6 @@ const MeetingRoom = () => {
           >
             <div className="h-full p-4">
               <CallParticipantsList onClose={() => setShowParticipants(false)} />
-            </div>
-          </div>
-
-          {/* Chat Sidebar */}
-          <div
-            className={cn(
-              "fixed inset-y-0 right-0 z-20 w-80 bg-white/95 backdrop-blur-md shadow-lg border-l border-gray-200 transform transition-transform duration-300",
-              showChat ? "translate-x-0" : "translate-x-full"
-            )}
-          >
-            <div className="h-full flex flex-col p-4">
-              {call.channel && (
-                <Chat client={call.client}>
-                  <Channel channel={call.channel}>
-                    <MessageList />
-                    <MessageInput />
-                  </Channel>
-                </Chat>
-              )}
             </div>
           </div>
         </div>
@@ -209,10 +175,7 @@ const MeetingRoom = () => {
 
             {/* Participants Toggle */}
             <button
-              onClick={() => {
-                setShowParticipants((prev) => !prev);
-                setShowChat(false);
-              }}
+              onClick={() => setShowParticipants((prev) => !prev)}
               className="rounded-full bg-gray-200 p-3 hover:bg-gray-300 transition-colors"
               title="Participants"
             >
