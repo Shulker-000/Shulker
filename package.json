@@ -13,7 +13,7 @@
     "@emailjs/browser": "^4.4.1",
     "@reduxjs/toolkit": "^2.8.2",
     "@stream-io/video-client": "^1.29.0",
-    "@stream-io/video-react-sdk": "^1.21.0",
+    "@stream-io/video-react-sdk": "^1.21.3",
     "@tailwindcss/vite": "^4.1.10",
     "@tldraw/tldraw": "^3.13.1",
     "class-variance-authority": "^0.7.1",
@@ -28,8 +28,6 @@
     "react-redux": "^9.2.0",
     "react-router-dom": "^7.8.0",
     "react-toastify": "^11.0.5",
-    "stream-chat": "^9.19.1",
-    "stream-chat-react": "^13.6.6",
     "tailwind-merge": "^3.3.1",
     "tailwindcss": "^4.1.10",
     "uuid": "^13.0.0"

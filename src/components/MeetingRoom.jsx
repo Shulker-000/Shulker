@@ -11,22 +11,8 @@ import {
   useCall,
   StreamTheme,
 } from "@stream-io/video-react-sdk";
-import {
-  Chat,
-  Channel,
-  MessageList,
-  MessageInput,
-} from "stream-chat-react";
 import { useNavigate } from "react-router-dom";
-import {
-  Users,
-  LayoutList,
-  Copy,
-  Check,
-  MessageCircle,
-  SquarePen,
-  CaptionsIcon,
-} from "lucide-react";
+import { Users, LayoutList, Copy, Check, SquarePen } from "lucide-react";
 
 import {
   DropdownMenu,
@@ -39,13 +25,19 @@ import Loader from "./Loader.jsx";
 import EndCallButton from "./EndCallButton.jsx";
 import { cn } from "../lib/utils";
 import "../index.css";
-import "../custom-stream.css";
+import { useSelector } from "react-redux";
+import { toast } from "react-toastify";
 
 const MeetingRoom = () => {
   const navigate = useNavigate();
+  const user = useSelector((state) => state.auth.user);
+
+  if (!user.isEmailVerified) {
+    return navigate("/profile");
+  }
+
   const [layout, setLayout] = useState("grid");
   const [showParticipants, setShowParticipants] = useState(false);
-  const [showChat, setShowChat] = useState(false);
   const [copied, setCopied] = useState(false);
 
   const {
@@ -57,7 +49,9 @@ const MeetingRoom = () => {
   const call = useCall();
 
   if (!call) {
-    throw new Error("useStreamCall must be used within a StreamCall component.");
+    throw new Error(
+      "useStreamCall must be used within a StreamCall component."
+    );
   }
 
   const callingState = useCallCallingState();
@@ -90,15 +84,30 @@ const MeetingRoom = () => {
     }
   };
 
-  const toggleCaptions = async () => {
+  const leaveCall = async () => {
     try {
-      if (isCaptioningInProgress) {
-        await call.stopClosedCaptions();
-      } else {
-        await call.startClosedCaptions({ language: "en" });
+      const backendUrl = import.meta.env.VITE_BACKEND_URL;
+
+      const response = await fetch(`${backendUrl}/api/v1/meetings/leave`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          meetingId: call.id,
+          userId: user._id,
+        }),
+        credentials: "include",
+      });
+      console.log(response);
+      if (response.status == 403) {
+        toast.error("You are host. End meeting to leave !!");
       }
-    } catch (error) {
-      console.error("Failed to toggle captions:", error);
+      const data = await response.json();
+      if (data.success) {
+        await call.leave();
+        navigate("/");
+      }
+    } catch (err) {
+      console.error("Error ending call:", err);
     }
   };
 
@@ -107,7 +116,7 @@ const MeetingRoom = () => {
       <StreamTheme as="main" mode="light" className="h-full w-full">
         <div className="flex w-full h-[calc(100vh-64px)] justify-center items-center">
           {/* Video Layout */}
-          <div className="flex size-full items-center justify-center max-w-[1000px] transition-all duration-300">
+          <div className="flex size-full w-[100vw] items-center justify-center max-w-[1000px] transition-all duration-300">
             <CallLayout />
           </div>
 
@@ -119,26 +128,9 @@ const MeetingRoom = () => {
             )}
           >
             <div className="h-full p-4">
-              <CallParticipantsList onClose={() => setShowParticipants(false)} />
-            </div>
-          </div>
-
-          {/* Chat Sidebar */}
-          <div
-            className={cn(
-              "fixed inset-y-0 right-0 z-20 w-80 bg-white/95 backdrop-blur-md shadow-lg border-l border-gray-200 transform transition-transform duration-300",
-              showChat ? "translate-x-0" : "translate-x-full"
-            )}
-          >
-            <div className="h-full flex flex-col p-4">
-              {call.channel && (
-                <Chat client={call.client}>
-                  <Channel channel={call.channel}>
-                    <MessageList />
-                    <MessageInput />
-                  </Channel>
-                </Chat>
-              )}
+              <CallParticipantsList
+                onClose={() => setShowParticipants(false)}
+              />
             </div>
           </div>
         </div>
@@ -160,8 +152,8 @@ const MeetingRoom = () => {
           {/* Core Controls */}
           <div className="flex flex-1 justify-center">
             <CallControls
-              onLeave={() => navigate("/")}
-              controls={["microphone", "camera", "leave-call"]}
+              onLeave={leaveCall}
+              controls={["microphone", "camera", "leave"]}
             />
           </div>
 
@@ -209,39 +201,11 @@ const MeetingRoom = () => {
 
             {/* Participants Toggle */}
             <button
-              onClick={() => {
-                setShowParticipants((prev) => !prev);
-                setShowChat(false);
-              }}
+              onClick={() => setShowParticipants((prev) => !prev)}
               className="rounded-full bg-gray-200 p-3 hover:bg-gray-300 transition-colors"
               title="Participants"
             >
               <Users size={20} className="text-gray-800" />
-            </button>
-
-            {/* Chat Toggle */}
-            <button
-              onClick={() => {
-                setShowChat((prev) => !prev);
-                setShowParticipants(false);
-              }}
-              className="rounded-full bg-gray-200 p-3 hover:bg-gray-300 transition-colors"
-              title="Chat"
-            >
-              <MessageCircle size={20} className="text-gray-800" />
-            </button>
-
-            {/* Captions Toggle */}
-            <button
-              onClick={toggleCaptions}
-              className={`rounded-full p-3 transition-colors ${
-                isCaptioningInProgress
-                  ? "bg-red-600 hover:bg-red-700 text-white"
-                  : "bg-gray-200 hover:bg-gray-300 text-gray-800"
-              }`}
-              title={isCaptioningInProgress ? "Stop Captions" : "Start Captions"}
-            >
-              <CaptionsIcon size={20} />
             </button>
 
             {/* Copy Link */}
@@ -254,7 +218,7 @@ const MeetingRoom = () => {
             </button>
 
             <CallStatsButton />
-            <EndCallButton />
+            <EndCallButton meetingId={call.id} />
           </div>
         </div>
       </StreamTheme>

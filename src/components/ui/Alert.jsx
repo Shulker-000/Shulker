@@ -7,11 +7,11 @@ import { Card, CardContent } from './Card'; // Assuming these components exist
 
 const Alert = ({ title, iconUrl }) => {
   return (
-    <section className="flex-center h-screen w-full">
-      <Card className="w-full max-w-[520px] border-none bg-dark-1 p-6 py-9 text-white">
+    <section className="flex items-center w-[100vw] h-[100vh] justify-center bg-gray-200 backdrop-blur-sm">
+      <Card className="w-full max-w-[520px] border-none rounded-2xl bg-white/70 backdrop-blur-md p-6 py-9 text-gray-900 shadow-lg">
         <CardContent>
           <div className="flex flex-col gap-9">
-            <div className="flex flex-col gap-3.5">
+            <div className="flex flex-col gap-3.5 items-center">
               {iconUrl && (
                 <div className="flex-center">
                   <img src={iconUrl} width={72} height={72} alt="icon" />
@@ -19,9 +19,9 @@ const Alert = ({ title, iconUrl }) => {
               )}
               <p className="text-center text-xl font-semibold">{title}</p>
             </div>
-            <Button asChild className="bg-blue-1">
-              <Link to="/">Back to Home</Link>
-            </Button>
+            <button  className="bg-blue-600 h-[5vh] m-2 text-white hover:bg-blue-700 w-full">
+              <Link to="/" className="w-full text-center block">Back to Home</Link>
+            </button>
           </div>
         </CardContent>
       </Card>
