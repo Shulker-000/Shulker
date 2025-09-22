@@ -296,18 +296,17 @@ button.bg-gray-200:hover {
   cursor: pointer;
 }
 
-/* Call End Button: default styling */
-.str-video__call-controls__button--variant-danger {
+/* Call End Button */
+.str-video__call-controls__button--variant-danger{
   background: red !important;
   color: #dc2626 !important;
-  padding: 10px 25px !important;
+  padding-left: 25px;
+  padding-right: 25px;
+  padding-top: 10px;
+  padding-bottom: 10px;
 }
-/* Call End Button: disabled styling */
-.host .str-video__call-controls__button--variant-danger {
-  pointer-events: none;      
-  opacity: 0;              
-  cursor: not-allowed;       
-}
+
+
 
 .str-video__icon svg {
   fill: currentColor !important;
@@ -355,13 +354,3 @@ button:hover,
 .str-video__icon:hover {
   cursor: pointer !important;
 }
-
-button:disabled,
-button[disabled] {
-  opacity: 0.5 !important;
-  cursor: not-allowed !important;
-  pointer-events: none !important;
-  background-color: #ccc !important;
-  color: #666 !important;
-}
-

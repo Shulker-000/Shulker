@@ -11,15 +11,14 @@ import {
   useCall,
   StreamTheme,
 } from "@stream-io/video-react-sdk";
-import {
-  Chat,
-  Channel,
-  MessageList,
-  MessageInput,
-} from "stream-chat-react";
 import { useNavigate } from "react-router-dom";
-import { Users, LayoutList, Copy, Check, MessageCircle, SquarePen, CaptionsIcon } from "lucide-react";
-import "../custom-stream.css";
+import {
+  Users,
+  LayoutList,
+  Copy,
+  Check,
+  SquarePen,
+} from "lucide-react";
 
 import {
   DropdownMenu,
@@ -33,7 +32,6 @@ import EndCallButton from "./EndCallButton.jsx";
 import { cn } from "../lib/utils";
 import "../index.css";
 import { useSelector } from "react-redux";
-import { toast } from "react-toastify";
 
 const MeetingRoom = () => {
   const navigate = useNavigate();
@@ -45,7 +43,6 @@ const MeetingRoom = () => {
 
   const [layout, setLayout] = useState("grid");
   const [showParticipants, setShowParticipants] = useState(false);
-  const [showChat, setShowChat] = useState(false);
   const [copied, setCopied] = useState(false);
 
   const {
@@ -57,16 +54,12 @@ const MeetingRoom = () => {
   const call = useCall();
 
   if (!call) {
-    throw new Error(
-      "useStreamCall must be used within a StreamCall component."
-    );
+    throw new Error("useStreamCall must be used within a StreamCall component.");
   }
 
   const callingState = useCallCallingState();
   const closedCaptions = useCallClosedCaptions();
   const isCaptioningInProgress = useIsCallCaptioningInProgress();
-  const { useLocalParticipant } = useCallStateHooks();
-  const localParticipant = useLocalParticipant();
 
   if (callingState !== CallingState.JOINED) {
     return <Loader />;
@@ -87,49 +80,12 @@ const MeetingRoom = () => {
 
   const copyLink = () => {
     if (call) {
-      const meetingId = call.id;
+      const meetingId = call.id; // Stream's call ID
       navigator.clipboard.writeText(meetingId);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }
   };
-
-  const leaveCall = async () => {
-    try {
-      const backendUrl = import.meta.env.VITE_BACKEND_URL;
-
-      const response = await fetch(`${backendUrl}/api/v1/meetings/leave`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          meetingId: call.id,
-          userId: user._id,
-        }),
-        credentials: "include",
-      });
-
-      if (response.status === 403) {
-        toast.error("You are host. End meeting to leave !!");
-        return;
-      }
-
-      const data = await response.json();
-
-      if (data) {
-        try {
-          if (!call.state?.hasLeft) {
-            await call.leave();
-          }
-        } catch (err) {
-          console.warn("Leave call error:", err);
-        }
-        navigate("/");
-      }
-    } catch (err) {
-      console.error("Error ending call:", err);
-    }
-  };
-
 
   return (
     <section className="relative h-screen w-full overflow-hidden bg-gray-50 text-gray-900">
@@ -148,26 +104,7 @@ const MeetingRoom = () => {
             )}
           >
             <div className="h-full p-4">
-              <CallParticipantsList
-                onClose={() => setShowParticipants(false)}
-              />
-            </div>
-          </div>
-          <div
-            className={cn(
-              "fixed inset-y-0 right-0 z-20 w-80 bg-white/95 backdrop-blur-md shadow-lg border-l border-gray-200 transform transition-transform duration-300",
-              showChat ? "translate-x-0" : "translate-x-full"
-            )}
-          >
-            <div className="h-full flex flex-col p-4">
-              {call.channel && (
-                <Chat client={call.client}>
-                  <Channel channel={call.channel}>
-                    <MessageList />
-                    <MessageInput />
-                  </Channel>
-                </Chat>
-              )}
+              <CallParticipantsList onClose={() => setShowParticipants(false)} />
             </div>
           </div>
         </div>
@@ -188,12 +125,10 @@ const MeetingRoom = () => {
         <div className="fixed bottom-0 left-0 w-full flex items-center justify-center gap-4 py-4 px-6 bg-white/95 backdrop-blur-md shadow-lg border-t border-gray-200">
           {/* Core Controls */}
           <div className="flex flex-1 justify-center">
-            <div className={localParticipant.userId === call.state.createdBy.id ? "host" : ""}>
-              <CallControls
-                onLeave={leaveCall}
-                controls={["microphone", "camera", "leave"]}
-              />
-            </div>
+            <CallControls
+              onLeave={() => navigate("/")}
+              controls={["microphone", "camera", "leave-call"]}
+            />
           </div>
 
           {/* Secondary Controls */}
@@ -240,10 +175,7 @@ const MeetingRoom = () => {
 
             {/* Participants Toggle */}
             <button
-              onClick={() => {
-                setShowParticipants((prev) => !prev);
-                setShowChat(false);
-              }}
+              onClick={() => setShowParticipants((prev) => !prev)}
               className="rounded-full bg-gray-200 p-3 hover:bg-gray-300 transition-colors"
               title="Participants"
             >
@@ -260,7 +192,7 @@ const MeetingRoom = () => {
             </button>
 
             <CallStatsButton />
-            <EndCallButton meetingId={call.id} />
+            <EndCallButton />
           </div>
         </div>
       </StreamTheme>

@@ -7,7 +7,6 @@ import {
   useNavigate,
 } from "react-router-dom";
 import "@stream-io/video-react-sdk/dist/css/styles.css";
-import 'stream-chat-react/dist/css/v2/index.css';
 import "./custom-stream.css"
 import AboutPage from "./pages/AboutPage";
 import LandingPage from "./pages/LandingPage";
