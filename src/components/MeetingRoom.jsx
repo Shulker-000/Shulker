@@ -12,7 +12,13 @@ import {
   StreamTheme,
 } from "@stream-io/video-react-sdk";
 import { useNavigate } from "react-router-dom";
-import { Users, LayoutList, Copy, Check, SquarePen } from "lucide-react";
+import {
+  Users,
+  LayoutList,
+  Copy,
+  Check,
+  SquarePen,
+} from "lucide-react";
 
 import {
   DropdownMenu,
@@ -26,7 +32,6 @@ import EndCallButton from "./EndCallButton.jsx";
 import { cn } from "../lib/utils";
 import "../index.css";
 import { useSelector } from "react-redux";
-import { toast } from "react-toastify";
 
 const MeetingRoom = () => {
   const navigate = useNavigate();
@@ -49,16 +54,12 @@ const MeetingRoom = () => {
   const call = useCall();
 
   if (!call) {
-    throw new Error(
-      "useStreamCall must be used within a StreamCall component."
-    );
+    throw new Error("useStreamCall must be used within a StreamCall component.");
   }
 
   const callingState = useCallCallingState();
   const closedCaptions = useCallClosedCaptions();
   const isCaptioningInProgress = useIsCallCaptioningInProgress();
-  const { useLocalParticipant } = useCallStateHooks();
-  const localParticipant = useLocalParticipant();
 
   if (callingState !== CallingState.JOINED) {
     return <Loader />;
@@ -79,49 +80,12 @@ const MeetingRoom = () => {
 
   const copyLink = () => {
     if (call) {
-      const meetingId = call.id;
+      const meetingId = call.id; // Stream's call ID
       navigator.clipboard.writeText(meetingId);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }
   };
-
-  const leaveCall = async () => {
-    try {
-      const backendUrl = import.meta.env.VITE_BACKEND_URL;
-
-      const response = await fetch(`${backendUrl}/api/v1/meetings/leave`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          meetingId: call.id,
-          userId: user._id,
-        }),
-        credentials: "include",
-      });
-
-      if (response.status === 403) {
-        toast.error("You are host. End meeting to leave !!");
-        return;
-      }
-
-      const data = await response.json();
-
-      if (data) {
-        try {
-          if (!call.state?.hasLeft) {
-            await call.leave();
-          }
-        } catch (err) {
-          console.warn("Leave call error:", err);
-        }
-        navigate("/");
-      }
-    } catch (err) {
-      console.error("Error ending call:", err);
-    }
-  };
-
 
   return (
     <section className="relative h-screen w-full overflow-hidden bg-gray-50 text-gray-900">
@@ -140,9 +104,7 @@ const MeetingRoom = () => {
             )}
           >
             <div className="h-full p-4">
-              <CallParticipantsList
-                onClose={() => setShowParticipants(false)}
-              />
+              <CallParticipantsList onClose={() => setShowParticipants(false)} />
             </div>
           </div>
         </div>
@@ -163,12 +125,10 @@ const MeetingRoom = () => {
         <div className="fixed bottom-0 left-0 w-full flex items-center justify-center gap-4 py-4 px-6 bg-white/95 backdrop-blur-md shadow-lg border-t border-gray-200">
           {/* Core Controls */}
           <div className="flex flex-1 justify-center">
-            <div className={localParticipant.userId === call.state.createdBy.id ? "host" : ""}>
-              <CallControls
-                onLeave={leaveCall}
-                controls={["microphone", "camera", "leave"]}
-              />
-            </div>
+            <CallControls
+              onLeave={() => navigate("/")}
+              controls={["microphone", "camera", "leave-call"]}
+            />
           </div>
 
           {/* Secondary Controls */}
@@ -232,7 +192,7 @@ const MeetingRoom = () => {
             </button>
 
             <CallStatsButton />
-            <EndCallButton meetingId={call.id} />
+            <EndCallButton />
           </div>
         </div>
       </StreamTheme>
