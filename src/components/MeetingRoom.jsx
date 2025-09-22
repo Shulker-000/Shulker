@@ -11,8 +11,15 @@ import {
   useCall,
   StreamTheme,
 } from "@stream-io/video-react-sdk";
+import {
+  Chat,
+  Channel,
+  MessageList,
+  MessageInput,
+} from "stream-chat-react";
 import { useNavigate } from "react-router-dom";
-import { Users, LayoutList, Copy, Check, SquarePen } from "lucide-react";
+import { Users, LayoutList, Copy, Check, MessageCircle, SquarePen, CaptionsIcon } from "lucide-react";
+import "../custom-stream.css";
 
 import {
   DropdownMenu,
@@ -38,6 +45,7 @@ const MeetingRoom = () => {
 
   const [layout, setLayout] = useState("grid");
   const [showParticipants, setShowParticipants] = useState(false);
+  const [showChat, setShowChat] = useState(false);
   const [copied, setCopied] = useState(false);
 
   const {
@@ -145,6 +153,23 @@ const MeetingRoom = () => {
               />
             </div>
           </div>
+          <div
+            className={cn(
+              "fixed inset-y-0 right-0 z-20 w-80 bg-white/95 backdrop-blur-md shadow-lg border-l border-gray-200 transform transition-transform duration-300",
+              showChat ? "translate-x-0" : "translate-x-full"
+            )}
+          >
+            <div className="h-full flex flex-col p-4">
+              {call.channel && (
+                <Chat client={call.client}>
+                  <Channel channel={call.channel}>
+                    <MessageList />
+                    <MessageInput />
+                  </Channel>
+                </Chat>
+              )}
+            </div>
+          </div>
         </div>
 
         {/* Closed Captions Overlay */}
@@ -215,7 +240,10 @@ const MeetingRoom = () => {
 
             {/* Participants Toggle */}
             <button
-              onClick={() => setShowParticipants((prev) => !prev)}
+              onClick={() => {
+                setShowParticipants((prev) => !prev);
+                setShowChat(false);
+              }}
               className="rounded-full bg-gray-200 p-3 hover:bg-gray-300 transition-colors"
               title="Participants"
             >

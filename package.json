@@ -28,6 +28,8 @@
     "react-redux": "^9.2.0",
     "react-router-dom": "^7.8.0",
     "react-toastify": "^11.0.5",
+    "stream-chat": "^9.20.0",
+    "stream-chat-react": "^13.7.0",
     "tailwind-merge": "^3.3.1",
     "tailwindcss": "^4.1.10",
     "uuid": "^13.0.0"
