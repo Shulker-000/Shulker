@@ -8,9 +8,19 @@ import {
 } from "@stream-io/video-react-sdk";
 import Alert from "./ui/Alert";
 import { Button } from "./ui/button";
-import { Mic, MicOff, Video, VideoOff, Copy, Check, Settings } from "lucide-react";
+import {
+  Mic,
+  MicOff,
+  Video,
+  VideoOff,
+  Copy,
+  Check,
+  Settings,
+} from "lucide-react";
+import { useSelector } from "react-redux";
 
 const MeetingSetup = ({ setIsSetupComplete }) => {
+  const user = useSelector((state) => state.auth.user);
   const { useCallEndedAt, useCallStartsAt } = useCallStateHooks();
   const callStartsAt = useCallStartsAt();
   const callEndedAt = useCallEndedAt();
@@ -19,7 +29,10 @@ const MeetingSetup = ({ setIsSetupComplete }) => {
   const callHasEnded = !!callEndedAt;
 
   const call = useCall();
-  if (!call) throw new Error("useStreamCall must be used within a StreamCall component.");
+  if (!call)
+    throw new Error(
+      "useStreamCall must be used within a StreamCall component."
+    );
 
   const [isMicOn, setIsMicOn] = useState(true);
   const [isCameraOn, setIsCameraOn] = useState(true);
@@ -34,8 +47,32 @@ const MeetingSetup = ({ setIsSetupComplete }) => {
   }, [isCameraOn, call.camera]);
 
   if (callTimeNotArrived)
-    return <Alert title={`Your Meeting is scheduled for ${callStartsAt.toLocaleString()}`} />;
-  if (callHasEnded) return <Alert title="The call has been ended by the host" iconUrl="/logo.png" />;
+    return (
+      <Alert
+        title={`Your Meeting is scheduled for ${callStartsAt.toLocaleString()}`}
+      />
+    );
+  if (callHasEnded)
+    return (
+      <Alert title="The call has been ended by the host" iconUrl="/logo.png" />
+    );
+
+  const joinCall = async ({ id }) => {
+    const token = localStorage.getItem("authToken");
+    console.log("id:", id);
+    const response = await fetch(
+      `${import.meta.env.VITE_BACKEND_URL}/api/v1/meetings/join`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ userId: user._id, meetingId: id }),
+      }
+    );
+    return response;
+  };
 
   return (
     <StreamTheme as="main" mode="light" className="h-full w-full">
@@ -52,8 +89,12 @@ const MeetingSetup = ({ setIsSetupComplete }) => {
             ) : (
               <div className="flex flex-col items-center justify-center w-full h-full bg-gray-100">
                 <VideoOff size={48} className="text-gray-400 mb-3" />
-                <span className="text-gray-600 text-xl font-medium">Camera Off</span>
-                <p className="text-gray-500 text-sm mt-1">Turn on your camera to see yourself</p>
+                <span className="text-gray-600 text-xl font-medium">
+                  Camera Off
+                </span>
+                <p className="text-gray-500 text-sm mt-1">
+                  Turn on your camera to see yourself
+                </p>
               </div>
             )}
           </div>
@@ -90,9 +131,13 @@ const MeetingSetup = ({ setIsSetupComplete }) => {
           {/* Join Button */}
           <Button
             className="w-full max-w-xs rounded-full bg-blue-600 hover:bg-blue-700 text-white font-bold px-10 py-3 shadow-md"
-            onClick={() => {
-              call.join();
-              setIsSetupComplete(true);
+            onClick={async () => {
+              const success = await joinCall({ id: call.id });
+              console.log("success: ", success);
+              if (success) {
+                call.join();
+                setIsSetupComplete(true);
+              }
             }}
           >
             Join Meeting
@@ -101,13 +146,14 @@ const MeetingSetup = ({ setIsSetupComplete }) => {
 
         {/* RIGHT SIDE */}
         <div className="flex flex-col items-center w-full lg:w-[40%] max-w-[600px] mt-6 lg:mt-0 lg:ml-8 gap-6">
-          
           {/* Meeting Details */}
           <div className="w-full bg-white rounded-xl border border-gray-200 shadow-lg p-6 space-y-4">
             <h2 className="text-xl font-bold text-gray-900">Meeting Details</h2>
             <p className="text-sm text-gray-600">Share this meeting ID</p>
             <div className="flex items-center gap-3 bg-gray-50 px-3 py-2 rounded-lg border">
-              <span className="font-mono text-gray-800 text-sm truncate flex-1">{call.id}</span>
+              <span className="font-mono text-gray-800 text-sm truncate flex-1">
+                {call.id}
+              </span>
               <button
                 onClick={() => {
                   navigator.clipboard.writeText(call.id);
@@ -116,7 +162,11 @@ const MeetingSetup = ({ setIsSetupComplete }) => {
                 }}
                 className="p-2 rounded bg-white border hover:bg-gray-100"
               >
-                {copied ? <Check size={16} className="text-green-600" /> : <Copy size={16} />}
+                {copied ? (
+                  <Check size={16} className="text-green-600" />
+                ) : (
+                  <Copy size={16} />
+                )}
               </button>
             </div>
             {copied && (

@@ -1,15 +1,15 @@
 import React from "react";
 import { useCall, useCallStateHooks } from "@stream-io/video-react-sdk";
 import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 
-const EndCallButton = () => {
+const EndCallButton = ({ meetingId }) => {
   const call = useCall();
   const navigate = useNavigate();
+  const user = useSelector((state) => state.auth.user);
 
   if (!call) {
-    throw new Error(
-      "useStreamCall must be used within a StreamCall component."
-    );
+    throw new Error("useStreamCall must be used within a StreamCall component.");
   }
 
   const { useLocalParticipant } = useCallStateHooks();
@@ -24,11 +24,22 @@ const EndCallButton = () => {
 
   const endCall = async () => {
     try {
-      await call.endCall(); // ends meeting for everyone
+      const backendUrl = import.meta.env.VITE_BACKEND_URL;
+
+      await fetch(`${backendUrl}/api/v1/meetings/end`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          meetingId,
+          userId: user._id,
+        }),
+        credentials: "include",
+      });
+
     } catch (err) {
       console.error("Error ending call:", err);
     } finally {
-      navigate("/"); // redirect after ending
+      navigate("/"); 
     }
   };
 
