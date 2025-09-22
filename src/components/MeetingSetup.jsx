@@ -59,7 +59,6 @@ const MeetingSetup = ({ setIsSetupComplete }) => {
 
   const joinCall = async ({ id }) => {
     const token = localStorage.getItem("authToken");
-    console.log("id:", id);
     const response = await fetch(
       `${import.meta.env.VITE_BACKEND_URL}/api/v1/meetings/join`,
       {
@@ -133,7 +132,6 @@ const MeetingSetup = ({ setIsSetupComplete }) => {
             className="w-full max-w-xs rounded-full bg-blue-600 hover:bg-blue-700 text-white font-bold px-10 py-3 shadow-md"
             onClick={async () => {
               const success = await joinCall({ id: call.id });
-              console.log("success: ", success);
               if (success) {
                 call.join();
                 setIsSetupComplete(true);
