@@ -86,6 +86,8 @@ const PastMeetings = () => {
     fetchMeetings();
   }, [user]);
 
+  console.log(pastMeetings);
+
   const handleAvatarClick = (attendees) => {
     setSelectedAttendees(attendees);
     setIsModalOpen(true);
@@ -96,19 +98,27 @@ const PastMeetings = () => {
     setSelectedAttendees([]);
   };
 
-  const formatMeetingTitle = (date, time) => {
-    const meetingDate = new Date(`${date}T${time}`);
-    const formattedDate = meetingDate.toLocaleDateString("en-US", {
+  const formatMeetingTitle = (startISO, endISO) => {
+    const startDate = new Date(startISO);
+    const endDate = new Date(endISO);
+    const result = {};
+    result.formattedDate = startDate.toLocaleDateString("en-IN", {
       year: "numeric",
       month: "long",
       day: "numeric",
     });
-    const formattedTime = meetingDate.toLocaleTimeString("en-US", {
+    result.formattedStart = startDate.toLocaleTimeString("en-US", {
       hour: "2-digit",
       minute: "2-digit",
     });
-    return `${formattedDate} at ${formattedTime}`;
+    result.formattedEnd = endDate.toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
+    return result;
   };
+
 
   if (isLoading) {
     return (
@@ -165,6 +175,7 @@ const PastMeetings = () => {
         <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
           {pastMeetings.length > 0 ? (
             pastMeetings.map((meeting) => (
+              console.log(meeting.scheduledTime, meeting.endedAt),
               <div
                 key={meeting._id}
                 className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300 cursor-pointer flex flex-col justify-between"
@@ -172,7 +183,14 @@ const PastMeetings = () => {
                 <div onClick={() => navigate(`/meetings/${meeting._id}/report`)}>
                   <div className="flex items-start justify-between mb-4">
                     <h2 className="text-lg sm:text-xl font-semibold text-gray-900">
-                      {formatMeetingTitle(meeting.date, meeting.time)}
+                      {formatMeetingTitle(meeting.scheduledTime, meeting.endedAt)
+                        .formattedDate}{" "}
+                      <br />
+                      {formatMeetingTitle(meeting.scheduledTime, meeting.endedAt)
+                        .formattedStart}{" "}
+                      -{" "}
+                      {formatMeetingTitle(meeting.scheduledTime, meeting.endedAt)
+                        .formattedEnd}
                     </h2>
                     <div className="flex items-center space-x-2 text-sm text-gray-500">
                       <Calendar className="w-4 h-4" />
@@ -193,22 +211,23 @@ const PastMeetings = () => {
                   <span className="text-sm font-medium text-gray-600 mb-2 block">
                     Attendees:
                   </span>
-                  <div className="flex items-center flex-wrap gap-2">
+                  <div className="flex items-center flex-wrap -space-x-2">
                     {meeting.members &&
                       meeting.members.map((member) => (
                         <div key={member._id}>
                           <img
-                            src={member.avatar}
-                            alt={member.username}
+                            src={member.user.avatar}
+                            alt={member.user.username}
                             className="w-8 h-8 rounded-full border-2 border-white object-cover shadow-sm transition-transform duration-200 hover:scale-110 cursor-pointer"
                             onClick={(e) => {
-                                e.stopPropagation(); // Prevents card's onClick from firing
-                                handleAvatarClick(meeting.members);
+                              e.stopPropagation();
+                              handleAvatarClick(meeting.members);
                             }}
                           />
                         </div>
                       ))}
                   </div>
+
                 </div>
               </div>
             ))
