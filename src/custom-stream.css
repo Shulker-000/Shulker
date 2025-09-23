@@ -296,14 +296,17 @@ button.bg-gray-200:hover {
   cursor: pointer;
 }
 
-/* Call End Button */
-.str-video__call-controls__button--variant-danger{
+/* Call End Button: default styling */
+.str-video__call-controls__button--variant-danger {
   background: red !important;
   color: #dc2626 !important;
-  padding-left: 25px;
-  padding-right: 25px;
-  padding-top: 10px;
-  padding-bottom: 10px;
+  padding: 10px 25px !important;
+}
+/* Call End Button: disabled styling */
+.host .str-video__call-controls__button--variant-danger {
+  pointer-events: none;      
+  opacity: 0;              
+  cursor: not-allowed;       
 }
 
 

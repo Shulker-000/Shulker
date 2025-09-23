@@ -1,34 +1,51 @@
 import React from "react";
 import { useCall, useCallStateHooks } from "@stream-io/video-react-sdk";
 import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 
-const EndCallButton = () => {
+const EndCallButton = ({ meetingId }) => {
   const call = useCall();
   const navigate = useNavigate();
+  const user = useSelector((state) => state.auth.user);
 
   if (!call) {
-    throw new Error(
-      "useStreamCall must be used within a StreamCall component."
-    );
+    throw new Error("useStreamCall must be used within a StreamCall component.");
   }
 
   const { useLocalParticipant } = useCallStateHooks();
   const localParticipant = useLocalParticipant();
 
   const isMeetingOwner =
-    localParticipant &&
-    call.state.createdBy &&
+    localParticipant?.userId &&
+    call.state?.createdBy?.id &&
     localParticipant.userId === call.state.createdBy.id;
 
   if (!isMeetingOwner) return null;
 
   const endCall = async () => {
     try {
-      await call.endCall(); // ends meeting for everyone
+      if (!user?._id) {
+        console.error("User ID missing, cannot end call");
+        return;
+      }
+
+      const backendUrl = import.meta.env.VITE_BACKEND_URL;
+      const response = await fetch(`${backendUrl}/api/v1/meetings/end`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ meetingId, userId: user._id }),
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        console.error("Failed to notify backend about ending the meeting");
+      }
+
+      await call.endCall();
     } catch (err) {
       console.error("Error ending call:", err);
     } finally {
-      navigate("/"); // redirect after ending
+      navigate("/");
     }
   };
 
