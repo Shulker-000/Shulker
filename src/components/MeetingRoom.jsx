@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "@stream-io/video-react-sdk/dist/css/styles.css";
 import {
   CallControls,
@@ -19,7 +19,7 @@ import {
   Check,
   SquarePen,
 } from "lucide-react";
-
+import { toast } from "react-toastify";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -37,9 +37,11 @@ const MeetingRoom = () => {
   const navigate = useNavigate();
   const user = useSelector((state) => state.auth.user);
 
-  if (!user.isEmailVerified) {
-    return navigate("/profile");
-  }
+  useEffect(() => {
+    if (user && !user.isEmailVerified) {
+      navigate("/profile");
+    }
+  }, [user]);
 
   const [layout, setLayout] = useState("grid");
   const [showParticipants, setShowParticipants] = useState(false);
@@ -80,10 +82,49 @@ const MeetingRoom = () => {
 
   const copyLink = () => {
     if (call) {
-      const meetingId = call.id; // Stream's call ID
+      const meetingId = call.id;
       navigator.clipboard.writeText(meetingId);
+      toast.success("Meeting link copied!");
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  const leaveCall = async () => {
+    try {
+      const backendUrl = import.meta.env.VITE_BACKEND_URL;
+
+      const response = await fetch(`${backendUrl}/api/v1/meetings/leave`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          meetingId: call.id,
+          userId: user._id,
+        }),
+        credentials: "include",
+      });
+      console.log("Leave response status:", response);
+      if (response.status === 403) {
+        toast.error("You are host. End meeting to leave !!");
+        return;
+      }
+
+      const data = await response.json();
+
+      if (data) {
+        try {
+          if (!call.state?.hasLeft) {
+            await call.leave();
+          }
+        } catch (err) {
+          console.warn("Leave call error:", err);
+        }
+      }
+      console.log("Left call successfully", data);
+    } catch (err) {
+      console.error("Error ending call:", err);
+    } finally {
+      navigate("/");
     }
   };
 
@@ -125,10 +166,10 @@ const MeetingRoom = () => {
         <div className="fixed bottom-0 left-0 w-full flex items-center justify-center gap-4 py-4 px-6 bg-white/95 backdrop-blur-md shadow-lg border-t border-gray-200">
           {/* Core Controls */}
           <div className="flex flex-1 justify-center">
-            <CallControls
-              onLeave={() => navigate("/")}
+            <div className={user._id === call.state.createdBy.id ? "host" : ""}><CallControls
+              onLeave={leaveCall}
               controls={["microphone", "camera", "leave-call"]}
-            />
+            /></div>
           </div>
 
           {/* Secondary Controls */}
@@ -192,7 +233,7 @@ const MeetingRoom = () => {
             </button>
 
             <CallStatsButton />
-            <EndCallButton />
+            <EndCallButton meetingId={call.id} />
           </div>
         </div>
       </StreamTheme>
