@@ -1,5 +1,6 @@
 import { teamMembers } from "../constants/teamData.js";
 import TeamMemberCard from "../components/TeamMemberCard.jsx";
+import { motion } from "framer-motion";
 
 const headerVariants = {
   hidden: { opacity: 0, y: -40 },
