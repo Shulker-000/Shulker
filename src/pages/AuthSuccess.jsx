@@ -16,13 +16,13 @@ export default function AuthSuccess() {
         credentials: "include",
       })
         .then((res) => res.json())
-        .then((data) => {
-          if (data.success && data.message.user) {
+        .then((res) => {
+          if (res.success && res.data) {
             localStorage.setItem("authToken", accessToken);
-            localStorage.setItem("authUser", JSON.stringify(data.message.user));
+            localStorage.setItem("authUser", JSON.stringify(res.data));
             document.cookie = `accessToken=${accessToken}; path=/; sameSite=Lax`;
 
-            dispatch(login({ user: data.message.user, token: accessToken }));
+            dispatch(login({ user: res.data, token: accessToken }));
             navigate("/dashboard");
           } else {
             navigate("/login?error=auth_failed");

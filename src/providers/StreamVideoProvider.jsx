@@ -24,9 +24,8 @@ const tokenProvider = async (userId) => {
     }
   );
 
-  if (!response.ok) throw new Error("Failed to fetch Stream token");
-  const data = await response.json();
-  return data.token;
+  const res = await response.json();
+  return res.data.token;
 };
 
 const StreamVideoProvider = ({ children }) => {
