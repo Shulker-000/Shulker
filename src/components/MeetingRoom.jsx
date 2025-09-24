@@ -20,15 +20,15 @@ import {
   MessageCircle,
   SquarePen,
 } from "lucide-react";
-import {
-  Chat,
-  Channel,
-  MessageList,
-  MessageInput,
-} from "stream-chat-react";
-import { StreamChat } from "stream-chat";
+// import {
+//   Chat,
+//   Channel,
+//   MessageList,
+//   MessageInput,
+// } from "stream-chat-react";
+// import { StreamChat } from "stream-chat";
 import { toast } from "react-toastify";
-import "../custom-stream.css";
+// import "../custom-stream.css";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -45,14 +45,15 @@ import { useSelector } from "react-redux";
 const MeetingRoom = () => {
   const navigate = useNavigate();
   const user = useSelector((state) => state.auth.user);
+  // const token = useSelector((state) => state.auth.token);
 
   const [layout, setLayout] = useState("grid");
   const [showParticipants, setShowParticipants] = useState(false);
-  const [showChat, setShowChat] = useState(false);
+  //const [showChat, setShowChat] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  const [chatClient, setChatClient] = useState(null);
-  const [channel, setChannel] = useState(null);
+  //const [chatClient, setChatClient] = useState(null);
+  //const [channel, setChannel] = useState(null);
 
   const {
     useCallCallingState,
@@ -64,54 +65,84 @@ const MeetingRoom = () => {
 
   useEffect(() => {
     if (user && !user.isEmailVerified) {
+      toast.error("Please verify your email to join the meeting.");
       navigate("/profile");
     }
   }, [user, navigate]);
 
-  useEffect(() => {
-    if (!user || !call) return;
+  if (!call) {
+    throw new Error("useStreamCall must be used within a StreamCall component.");
+  }
+  // useEffect(() => {
+  //   if (!user || !call || !token) return;
 
-    const apiKey = import.meta.env.VITE_STREAM_CHAT_API_KEY;
-    const userToken = user.token; // Make sure your backend generates this securely
+  //   const apiKey = import.meta.env.VITE_STREAM_CHAT_API_KEY;
+  //   if (!apiKey) {
+  //     console.error("Stream Chat API key is missing");
+  //     return;
+  //   }
 
-    const client = new StreamChat(apiKey);
+  //   const client = new StreamChat(apiKey);
 
-    async function setupChat() {
-      try {
-        await client.connectUser(
-          {
-            id: user._id,
-            name: user.name,
-            image: user.image,
-          },
-          userToken
-        );
+  //   async function setupChat() {
+  //     try {
+  //       console.log("Connecting Stream Chat user with ID:", user._id, "Token:", token);
 
-        const channelId = "meeting-room-" + call.id;
+  //       // Disconnect first to avoid multiple connections
+  //       if (client.userID) {
+  //         await client.disconnectUser();
+  //         console.log("Disconnected previous Stream Chat user");
+  //       }
 
-        // Create or get existing messaging channel for this meeting
-        const meetingChannel = client.channel("messaging", channelId, {
-          name: "Meeting Room Chat",
-          members: [user._id], // Add all participants on your backend ideally
-        });
+  //       // Make sure user._id is string to match user_id claim in token
+  //       const userIdString = user._id.toString();
 
-        await meetingChannel.watch();
+  //       await client.connectUser(
+  //         {
+  //           id: userIdString,
+  //           name: user.name || user.username || userIdString,
+  //           image: user.image || "",
+  //         },
+  //         token
+  //       );
 
-        setChannel(meetingChannel);
-        setChatClient(client);
-      } catch (error) {
-        console.error("Failed to connect to Stream Chat", error);
-      }
-    }
+  //       console.log("Connected to Stream Chat as user:", userIdString);
+  //       console.log("Call ID:", call.id);
 
-    setupChat();
+  //       const channelId = "meeting-room-" + call.id;
 
-    return () => {
-      client.disconnectUser().catch(() => {});
-      setChannel(null);
-      setChatClient(null);
-    };
-  }, [user, call]);
+  //       // Create or get the channel
+  //       const meetingChannel = client.channel("messaging", channelId, {
+  //         name: "Meeting Room Chat",
+  //         members: [userIdString], // ideally extend with all participants on backend
+  //       });
+  //       console.log("Using meeting chat channel:", channelId);
+
+  //       await meetingChannel.watch();
+
+  //       if (isMounted) {
+  //         setChannel(meetingChannel);
+  //         setChatClient(client);
+  //       }
+  //     } catch (error) {
+  //       console.error("Failed to connect to Stream Chat", error);
+  //       toast.error("Failed to connect to chat. Please refresh.");
+  //     }
+  //   }
+
+  //   setupChat();
+
+  //   // Cleanup function to disconnect client on unmount or dependency change
+  //   return () => {
+  //     isMounted = false;
+  //     if (client) {
+  //       client.disconnectUser().catch(() => { });
+  //     }
+  //     setChatClient(null);
+  //     setChannel(null);
+  //   };
+  // 
+  // }, [user, call, token, navigate]);
 
   const callingState = useCallCallingState();
   const closedCaptions = useCallClosedCaptions();
@@ -163,28 +194,23 @@ const MeetingRoom = () => {
       });
 
       if (response.status === 403) {
-        toast.error("You are host. End meeting to leave !!");
+        toast.error("You are the host. End the meeting to leave!");
         return;
       }
 
       const data = await response.json();
 
       if (data) {
-        try {
-          if (!call.state?.hasLeft) {
-            await call.leave();
-          }
-        } catch (err) {
-          console.warn("Leave call error:", err);
+        if (!call.state?.hasLeft) {
+          await call.leave();
         }
       }
 
-      // Clean up chat client on leave
-      if (chatClient) {
-        chatClient.disconnectUser().catch(() => {});
-        setChatClient(null);
-        setChannel(null);
-      }
+      // if (chatClient) {
+      //   await chatClient.disconnectUser();
+      //   setChatClient(null);
+      //   setChannel(null);
+      // }
     } catch (err) {
       console.error("Error ending call:", err);
     } finally {
@@ -196,33 +222,30 @@ const MeetingRoom = () => {
     <section className="relative h-screen w-full overflow-hidden bg-gray-50 text-gray-900">
       <StreamTheme as="main" mode="light" className="h-full w-full">
         <div className="flex w-full h-[calc(100vh-64px)] justify-center items-center">
-          {/* Video Layout */}
           <div
             className="flex size-full items-center justify-center max-w-[1000px] transition-all duration-300"
-            style={{
-              width:
-                showChat || showParticipants
-                  ? "calc(100vw - 320px)"
-                  : "100vw",
-            }}
+          // style={{
+          //   width:
+          //     showChat || showParticipants
+          //       ? "calc(100vw - 320px)"
+          //       : "100vw",
+          // }}
           >
             <CallLayout />
           </div>
 
-          {/* Participants Sidebar */}
           <div
             className={cn(
-              "fixed inset-y-0 right-80 z-20 w-80 bg-white/95 backdrop-blur-md shadow-lg border-l border-gray-200 transform transition-transform duration-300",
+              "fixed inset-y-0 right-0 z-20 w-80 bg-white/95 backdrop-blur-md shadow-lg border-l border-gray-200 transform transition-transform duration-300",
               showParticipants ? "translate-x-0" : "translate-x-full"
             )}
           >
-            <div className="h-full p-4 overflow-y-auto">
+            <div className="h-full p-4">
               <CallParticipantsList onClose={() => setShowParticipants(false)} />
             </div>
           </div>
 
-          {/* Chat Sidebar */}
-          <div
+          {/* <div
             className={cn(
               "fixed inset-y-0 right-0 z-20 w-80 bg-white/95 backdrop-blur-md shadow-lg border-l border-gray-200 transform transition-transform duration-300",
               showChat ? "translate-x-0" : "translate-x-full"
@@ -240,24 +263,20 @@ const MeetingRoom = () => {
                 <Loader />
               )}
             </div>
-          </div>
+          </div> */}
         </div>
 
-        {/* Closed Captions Overlay */}
         {isCaptioningInProgress && closedCaptions.length > 0 && (
           <div className="absolute bottom-[50vh] left-1/2 -translate-x-1/2 bg-black/60 text-white px-4 py-2 rounded-lg text-sm max-w-[80%] text-center">
             {closedCaptions.map(({ user, text, start_time }) => (
               <p key={`${user.id}-${start_time}`} className="caption-line">
-                <span className="font-semibold">{user?.name || user?.id}:</span>{" "}
-                {text}
+                <span className="font-semibold">{user?.name || user?.id}:</span> {text}
               </p>
             ))}
           </div>
         )}
 
-        {/* Controls Bar */}
         <div className="fixed bottom-0 left-0 w-full flex items-center justify-center gap-4 py-4 px-6 bg-white/95 backdrop-blur-md shadow-lg border-t border-gray-200">
-          {/* Core Controls */}
           <div className="flex flex-1 justify-center">
             <div className={user._id === call.state.createdBy.id ? "host" : ""}>
               <CallControls
@@ -267,9 +286,7 @@ const MeetingRoom = () => {
             </div>
           </div>
 
-          {/* Secondary Controls */}
           <div className="flex items-center gap-4">
-            {/* Whiteboard */}
             <a
               href="/whiteboard"
               target="_blank"
@@ -280,7 +297,6 @@ const MeetingRoom = () => {
               <SquarePen size={20} />
             </a>
 
-            {/* Layout Switcher */}
             <DropdownMenu>
               <DropdownMenuTrigger className="cursor-pointer rounded-full bg-gray-200 p-3 hover:bg-gray-300 transition-colors">
                 <LayoutList size={20} className="text-gray-800" />
@@ -311,26 +327,11 @@ const MeetingRoom = () => {
 
             {/* Participants Toggle */}
             <button
-              onClick={() => {
-                setShowParticipants((prev) => !prev);
-                setShowChat(false);
-              }}
+              onClick={() => setShowParticipants((prev) => !prev)}
               className="rounded-full bg-gray-200 p-3 hover:bg-gray-300 transition-colors"
               title="Participants"
             >
               <Users size={20} className="text-gray-800" />
-            </button>
-
-            {/* Chat Toggle */}
-            <button
-              onClick={() => {
-                setShowChat((prev) => !prev);
-                setShowParticipants(false);
-              }}
-              className="rounded-full bg-gray-200 p-3 hover:bg-gray-300 transition-colors"
-              title="Chat"
-            >
-              <MessageCircle size={20} className="text-gray-800" />
             </button>
 
             {/* Copy Link */}

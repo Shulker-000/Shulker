@@ -94,7 +94,6 @@ const Dashboard = () => {
         },
       });
 
-      // Step 2: Save in backend
       const token = localStorage.getItem("authToken");
       const response = await fetch(
         `${import.meta.env.VITE_BACKEND_URL}/api/v1/meetings/create`,
@@ -114,9 +113,8 @@ const Dashboard = () => {
         throw new Error("Failed to create meeting on backend");
       }
 
-      const backendResponse = await response.json();
       setCallDetail(call);
-      navigate(`/meetings/${call.id}`);
+      navigate(`/meetings/${id}`);
       toast({ title: "Meeting Created" });
     } catch (error) {
       console.error("An error occurred during meeting creation:", error);
