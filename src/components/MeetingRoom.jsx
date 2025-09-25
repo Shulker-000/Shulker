@@ -199,7 +199,7 @@ const MeetingRoom = () => {
     <section className="relative h-screen w-full overflow-hidden bg-gray-50 text-gray-900">
       <StreamTheme as="main" mode="light" className="h-full w-full">
         <div className="flex w-full h-[calc(100vh-64px)] justify-center items-center">
-          <div className="flex size-full items-center justify-center max-w-[1000px] transition-all duration-300">
+          <div className="flex w-[100vw] size-full items-center justify-center max-w-[1000px] transition-all duration-300">
             <CallLayout />
           </div>
 

@@ -16,10 +16,13 @@ import { useToast } from "./../components/ui/use-toast";
 import { Input } from "./../components/ui/input.jsx";
 import { Textarea } from "./../components/ui/TextArea.jsx";
 import MeetingModal from "../components/MeetingModal";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 const initialValues = {
   dateTime: new Date(),
   description: "",
+  participants: "", // ADDED: New field for participants
   link: "",
 };
 
@@ -35,6 +38,7 @@ const Dashboard = () => {
   const [meetings, setMeetings] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false); // ADDED: Loading state for button
 
   useEffect(() => {
     const fetchMeetings = async () => {
@@ -73,63 +77,238 @@ const Dashboard = () => {
     };
     fetchMeetings();
   }, [user]);
+
   const createMeeting = async () => {
     if (!client || !user) {
       alert("Missing client or user, cannot create meeting.");
       return;
     }
-
+    setLoading(true); // Set loading to true
     try {
-      if (!values.dateTime) {
-        toast({ title: "Please select a date and time" });
-        return;
-      }
-      const id = uuidv4();
-      const call = client.call("default", id);
+      // Logic for Instant Meeting
+      if (meetingState === "isInstantMeeting") {
+        const id = uuidv4();
+        const call = client.call("default", id);
 
-      if (!call) throw new Error("Failed to create call object.");
+        if (!call) throw new Error("Failed to create call object.");
       const startsAt = values.dateTime.toISOString() || new Date().toISOString();
       const description = values.description || "Instant Meeting";
-      await call.getOrCreate({
-        data: {
+        await call.getOrCreate({
+          data: {
           starts_at: startsAt,
           custom: { description },
-        },
-      });
-
-      const token = localStorage.getItem("authToken");
-      const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/v1/meetings/create`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({ meetingId: id }),
-        }
-      );
+        });
 
-      if (!response.ok) {
+        // Backend call to save the meeting
+        const token = localStorage.getItem("authToken");
+        const response = await fetch(
+          `${import.meta.env.VITE_BACKEND_URL}/api/v1/meetings/create`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              meetingId: id,
+              scheduledTime: new Date().toISOString(),
+              participants: [], // No participants for instant meeting
+              title: "Instant Meeting",
+            }),
+          }
+        );
+
+        if (!response.ok) {
         throw new Error("Failed to create meeting on backend");
-      }
+        }
 
-      setCallDetail(call);
-      navigate(`/meetings/${id}`);
-      toast({ title: "Meeting Created" });
+        setCallDetail(call);
+        navigate(`/meetings/${id}`);
+        toast({ title: "Instant Meeting Created" });
+      } else if (meetingState === "isScheduleMeeting") {
+        // Logic for Scheduled Meeting
+        if (!values.dateTime || !values.participants) {
+          toast({ title: "Please fill in all required fields" });
+          setLoading(false);
+          return;
+        }
+
+        const id = uuidv4();
+        const call = client.call("default", id);
+        if (!call) throw new Error("Failed to create call object.");
+
+        await call.getOrCreate({
+          data: {
+            starts_at: values.dateTime.toISOString(),
+            custom: { description: values.description || "Scheduled Meeting" },
+          },
+        });
+
+        const token = localStorage.getItem("authToken");
+        const participantEmails = values.participants
+          .split(",")
+          .map((e) => e.trim());
+        const response = await fetch(
+          `${import.meta.env.VITE_BACKEND_URL}/api/v1/meetings/schedule`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              meetingId: id,
+              scheduledTime: values.dateTime,
+              participants: participantEmails,
+              title: values.description || "Scheduled Meeting",
+            }),
+          }
+        );
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          console.error("Backend error:", errorData);
+          throw new Error("Failed to schedule meeting on backend");
+        }
+
+        // Handle success
+        setCallDetail(call);
+        setMeetingState("isScheduledSuccess"); // New state to show success modal
+        toast({ title: "Meeting Scheduled" });
+      }
     } catch (error) {
-      console.error("Error creating meeting:", error);
+      console.error("An error occurred:", error);
       toast({ title: "Failed to create Meeting" });
+    } finally {
+      setLoading(false); // Reset loading state
     }
   };
+
   const upcomingMeetings = meetings.filter(
-    (m) => m.status === "upcoming" || m.status === "scheduled"
+    (m) => new Date(m.scheduledTime) > new Date()
   );
   const currentMeetings = meetings.filter(
-    (m) => m.status === "started" || m.status === "ongoing"
+    (m) => new Date(m.scheduledTime) <= new Date()
   );
 
-  const meetingLink = `/meetings/${callDetail?.id}`;
+  const renderModal = () => {
+    switch (meetingState) {
+      case "isInstantMeeting":
+        return (
+          <MeetingModal
+            isOpen={true}
+            onClose={() => setMeetingState(undefined)}
+            title="Start an Instant Meeting"
+            className="text-center"
+            buttonText="Start Meeting"
+            handleClick={createMeeting}
+            buttonDisabled={loading}
+          />
+        );
+      case "isScheduleMeeting":
+        return (
+          <MeetingModal
+            isOpen={true}
+            onClose={() => setMeetingState(undefined)}
+            title="Schedule Meeting"
+            handleClick={createMeeting}
+            buttonText={loading ? "Scheduling..." : "Schedule Meeting"}
+            buttonDisabled={loading}
+          >
+            <div className="flex flex-col gap-2.5">
+              <label className="text-base font-normal leading-[22.4px] text-sky-2">
+                Add a description (optional)
+              </label>
+              <Textarea
+                className="focus-visible:ring-0 focus-visible:ring-offset-0"
+                onChange={(e) =>
+                  setValues({ ...values, description: e.target.value })
+                }
+                value={values.description}
+              />
+            </div>
+            <div className="flex flex-col gap-2.5 mt-4">
+              <label className="text-base font-normal leading-[22.4px] text-sky-2">
+                Select date and time
+              </label>
+              <DatePicker
+                selected={values.dateTime}
+                onChange={(date) => setValues({ ...values, dateTime: date })}
+                showTimeSelect
+                timeFormat="HH:mm"
+                timeIntervals={15}
+                timeCaption="time"
+                dateFormat="MMMM d, yyyy h:mm aa"
+                className="w-full rounded-md border border-gray-300 p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div className="flex flex-col gap-2.5 mt-4">
+              <label className="text-base font-normal leading-[22.4px] text-sky-2">
+                Add Participants (comma-separated emails)
+              </label>
+              <Input
+                type="text"
+                placeholder="e.g., user1@email.com, user2@email.com"
+                onChange={(e) =>
+                  setValues({ ...values, participants: e.target.value })
+                }
+                value={values.participants}
+                className="focus-visible:ring-0 focus-visible:ring-offset-0"
+              />
+            </div>
+          </MeetingModal>
+        );
+      case "isScheduledSuccess":
+        return (
+          <MeetingModal
+            isOpen={true}
+            onClose={() => setMeetingState(undefined)}
+            title="Meeting Scheduled"
+            handleClick={() => {
+              navigator.clipboard.writeText(
+                `${window.location.origin}/meetings/${callDetail?.id}`
+              );
+              toast({ title: "Link Copied" });
+            }}
+            className="text-center"
+            buttonText="Copy Meeting Link"
+          >
+            <p className="text-sm text-gray-500">
+              A meeting invitation has been sent to all participants.
+            </p>
+          </MeetingModal>
+        );
+      case "isJoiningMeeting":
+        return (
+          <MeetingModal
+            isOpen={true}
+            onClose={() => {
+              setMeetingState(undefined);
+              setValues({ ...values, link: "" });
+            }}
+            title="Join a Meeting"
+            className="text-center"
+            buttonText="Join Meeting"
+            handleClick={() => {
+              if (values.link.trim()) {
+                navigate(`/meetings/${values.link.trim()}`);
+              }
+            }}
+          >
+            <Input
+              type="text"
+              placeholder="Enter meeting link or ID"
+              value={values.link}
+              onChange={(e) => setValues({ ...values, link: e.target.value })}
+              className="focus-visible:ring-0 focus-visible:ring-offset-0"
+            />
+          </MeetingModal>
+        );
+      default:
+        return null;
+    }
+  };
 
   if (isLoading) {
     return (
@@ -205,7 +384,7 @@ const Dashboard = () => {
                         </div>
                       </div>
                       <button
-                        onClick={() => navigate(`/meetings/${meeting._id || meeting.id}`)}
+                        onClick={() => navigate(`/meetings/${meeting.id}`)}
                         className="px-4 py-2 bg-purple-600 text-white rounded-full hover:bg-purple-700 transition-colors"
                       >
                         Join
@@ -225,7 +404,10 @@ const Dashboard = () => {
                 {upcomingMeetings.length > 0 ? (
                   upcomingMeetings.map((meeting) => (
                     <li key={meeting._id || meeting.id} className="p-4 rounded-2xl bg-gray-50 flex justify-between items-center">
+                      
                       <div>
+                      {
+                      console.log(meeting.id)}
                         <div className="text-lg font-semibold">{meeting.title || "Meeting"}</div>
                         <div className="text-sm text-gray-500">
                           {new Date(meeting.scheduledTime).toLocaleString()}
@@ -269,76 +451,7 @@ const Dashboard = () => {
           </section>
         </div>
       </div>
-
-      {!callDetail ? (
-        <MeetingModal
-          isOpen={meetingState === "isScheduleMeeting"}
-          onClose={() => setMeetingState(undefined)}
-          title="Create Meeting"
-          handleClick={createMeeting}
-        >
-          <div className="flex flex-col gap-2.5">
-            <label className="text-base font-normal leading-[22.4px] text-sky-2">
-              Add a description
-            </label>
-            <Textarea
-              className="focus-visible:ring-0 focus-visible:ring-offset-0"
-              onChange={(e) =>
-                setValues({ ...values, description: e.target.value })
-              }
-            />
-          </div>
-        </MeetingModal>
-      ) : (
-        <MeetingModal
-          isOpen={meetingState === "isScheduleMeeting"}
-          onClose={() => setMeetingState(undefined)}
-          title="Meeting Created"
-          handleClick={() => {
-            navigator.clipboard.writeText(meetingLink);
-            toast({ title: "Link Copied" });
-          }}
-          image={"/icons/checked.svg"}
-          buttonIcon="/icons/copy.svg"
-          className="text-center"
-          buttonText="Copy Meeting Link"
-        />
-      )}
-
-      <MeetingModal
-        isOpen={meetingState === "isJoiningMeeting"}
-        onClose={() => {
-          setMeetingState(undefined);
-          setValues({ ...values, link: "" });
-        }}
-        title="Join a Meeting"
-        className="text-center"
-        buttonText="Join Meeting"
-        handleClick={() => {
-          if (values.link.trim()) {
-            navigate(`/meetings/${values.link.trim()}`);
-          }
-        }}
-      >
-        <Input
-          type="text"
-          placeholder="Enter meeting link or ID"
-          value={values.link}
-          onChange={(e) =>
-            setValues({ ...values, link: e.target.value })
-          }
-          className="focus-visible:ring-0 focus-visible:ring-offset-0"
-        />
-      </MeetingModal>
-
-      <MeetingModal
-        isOpen={meetingState === "isInstantMeeting"}
-        onClose={() => setMeetingState(undefined)}
-        title="Start an Instant Meeting"
-        className="text-center"
-        buttonText="Start Meeting"
-        handleClick={createMeeting}
-      />
+      {renderModal()}
     </div>
   );
 };

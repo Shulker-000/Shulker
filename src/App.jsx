@@ -7,7 +7,7 @@ import {
   useNavigate,
 } from "react-router-dom";
 import "@stream-io/video-react-sdk/dist/css/styles.css";
-import "./custom-stream.css"
+import "./custom-stream.css";
 import AboutPage from "./pages/AboutPage";
 import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
@@ -32,6 +32,7 @@ import MeetingPage from "./pages/MeetingPage.jsx";
 // ✅ Stream SDK
 import { StreamCall, StreamTheme } from "@stream-io/video-react-sdk";
 import PastMeetings from "./components/PastMeetings.jsx";
+import AcceptInvite from "./pages/AcceptInvite.jsx";
 
 // ✅ Light theme object for Stream UI
 const lightTheme = {
@@ -125,6 +126,7 @@ const AppWrapper = () => {
         <Route path="/reset-password/:token" element={<ResetPassword />} />
         <Route path="/verify-email/:token" element={<VerifyEmailPage />} />
         <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/accept-invite/:meetingId" element={<AcceptInvite />} />
         <Route
           path="/dashboard/*"
           element={
