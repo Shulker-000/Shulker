@@ -1,14 +1,15 @@
 import React, { useEffect, useState, createContext, useContext } from "react";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { StreamVideoClient, StreamVideo } from "@stream-io/video-react-sdk";
 import Loader from "../components/Loader.jsx";
+import { setStreamToken } from "../features/authSlice.js";
 
 const API_KEY = import.meta.env.VITE_STREAM_API_KEY;
 
 const StreamContext = createContext(null);
 export const useStreamClient = () => useContext(StreamContext);
 
-const tokenProvider = async (userId) => {
+const tokenProvider = async (userId, dispatch) => {
   const token = localStorage.getItem("authToken");
   if (!token) throw new Error("Authentication token is missing.");
 
@@ -25,12 +26,18 @@ const tokenProvider = async (userId) => {
   );
 
   const res = await response.json();
-  return res.data.token;
+  if (res?.data?.token) {
+    dispatch(setStreamToken(res.data.token));
+    return res.data.token;
+  } else {
+    throw new Error("Stream token not received from backend.");
+  }
 };
 
 const StreamVideoProvider = ({ children }) => {
   const [videoClient, setVideoClient] = useState(null);
   const [loading, setLoading] = useState(true);
+  const dispatch = useDispatch();
   const { user, token } = useSelector((state) => state.auth);
   const isLoggedIn = !!user && !!token;
 
@@ -59,7 +66,7 @@ const StreamVideoProvider = ({ children }) => {
             name: user.username || user.firstname || user._id,
             image: user.avatar,
           },
-          tokenProvider: () => tokenProvider(user._id),
+          tokenProvider: () => tokenProvider(user._id, dispatch),
         });
         setVideoClient(client);
       } catch (err) {
