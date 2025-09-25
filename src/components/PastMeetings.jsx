@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { FileText, Calendar, Clock, Sparkles, XCircle } from "lucide-react";
 import { useSelector } from "react-redux";
 
-// Reusable Modal Component
 const AttendeesModal = ({ isOpen, onClose, attendees }) => {
   if (!isOpen) return null;
 
@@ -73,8 +72,12 @@ const PastMeetings = () => {
           );
         }
 
-        const data = await response.json();
-        setPastMeetings(data);
+        const res = await response.json();
+        res.data = res.data.filter((meeting) => meeting.status === "ended");
+        res.data.sort(
+          (a, b) => new Date(b.endedAt).getTime() - new Date(a.endedAt).getTime()
+        );
+        setPastMeetings(res.data);
       } catch (err) {
         console.error("Error fetching past meetings:", err);
         setError(err.message || "An unexpected error occurred.");
@@ -170,7 +173,7 @@ const PastMeetings = () => {
     <div className="min-h-screen bg-gray-50 p-4 sm:p-8 font-sans text-gray-800">
       <div className="w-[90vw] mx-auto">
         <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-8">
-          Past Meetings & AI Summaries
+          Past Meetings
         </h1>
         <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
           {pastMeetings.length > 0 ? (
