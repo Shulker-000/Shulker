@@ -102,10 +102,9 @@ export default function ProfilePage() {
             credentials: "include",
           }
         );
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.message || "Failed to fetch user");
-
-        const userData = data?.message?.user || data?.user || {};
+        const response = await res.json();
+        if (!res.ok) throw new Error(response || "Failed to fetch user");
+        const userData = response?.data;
         dispatch(updateUserProfile(userData));
 
         setFormData({
@@ -127,7 +126,6 @@ export default function ProfilePage() {
     fetchUser();
   }, [dispatch]);
 
-  // Update current time every minute
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentTime(new Date());
@@ -296,8 +294,7 @@ export default function ProfilePage() {
     setIsVerifying(true);
     try {
       const response = await fetch(
-        `${
-          import.meta.env.VITE_BACKEND_URL
+        `${import.meta.env.VITE_BACKEND_URL
         }/api/v1/users/send-email-verification`,
         {
           method: "POST",
@@ -357,13 +354,12 @@ export default function ProfilePage() {
               user?.avatar && user.avatar.trim() !== ""
                 ? user.avatar
                 : `https://ui-avatars.com/api/?name=${encodeURIComponent(
-                    user?.username || "User"
-                  )}&background=3b82f6&color=fff&size=200`
+                  user?.username || "User"
+                )}&background=3b82f6&color=fff&size=200`
             }
             alt="Profile Avatar"
-            className={`w-full h-full object-cover transition-opacity duration-300 ${
-              isAvatarUpdating ? "opacity-50 blur-sm" : ""
-            }`}
+            className={`w-full h-full object-cover transition-opacity duration-300 ${isAvatarUpdating ? "opacity-50 blur-sm" : ""
+              }`}
           />
           {isAvatarUpdating && (
             <div className="absolute inset-0 flex items-center justify-center">
@@ -395,17 +391,15 @@ export default function ProfilePage() {
             )}
             <button
               onClick={() => setIsEditing(!isEditing)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors duration-300 shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
-                isEditing ? "hidden" : ""
-              }`}
+              className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors duration-300 shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${isEditing ? "hidden" : ""
+                }`}
             >
               <Edit size={16} /> Edit
             </button>
             <button
               onClick={() => setIsEditing(false)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors duration-300 shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
-                isEditing ? "" : "hidden"
-              }`}
+              className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors duration-300 shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${isEditing ? "" : "hidden"
+                }`}
             >
               <X size={16} /> Cancel
             </button>
@@ -558,11 +552,10 @@ export default function ProfilePage() {
         <button
           onClick={() => setIsPasswordModalOpen(true)}
           disabled={!!user.googleId}
-          className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium shadow-md focus:outline-none transition-all duration-300 w-full sm:w-auto justify-center ${
-            !!user.googleId
-              ? "hidden"
-              : "text-white bg-blue-600 hover:bg-blue-700 focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-50 focus:ring-blue-500"
-          }`}
+          className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium shadow-md focus:outline-none transition-all duration-300 w-full sm:w-auto justify-center ${!!user.googleId
+            ? "hidden"
+            : "text-white bg-blue-600 hover:bg-blue-700 focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-50 focus:ring-blue-500"
+            }`}
         >
           <KeyRound size={16} /> Change Password
         </button>
@@ -596,8 +589,8 @@ export default function ProfilePage() {
                   avatarFile
                     ? URL.createObjectURL(avatarFile)
                     : user?.avatar && user.avatar.trim() !== ""
-                    ? user.avatar
-                    : `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                      ? user.avatar
+                      : `https://ui-avatars.com/api/?name=${encodeURIComponent(
                         user?.username || "User"
                       )}&background=3b82f6&color=fff&size=200`
                 }
@@ -699,3 +692,4 @@ export default function ProfilePage() {
     </div>
   );
 }
+0
