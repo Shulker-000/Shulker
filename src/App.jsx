@@ -20,7 +20,7 @@ import NotFoundPage from "./pages/NotFoundPage";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/resetPassword/[token].jsx";
 import Dashboard from "./pages/Dashboard.jsx";
-import { login } from "./features/authSlice";
+import { login, logout, updateUserProfile } from "./features/authSlice";
 import AuthSuccess from "./pages/AuthSuccess.jsx";
 import ProfilePage from "./pages/ProfilePage.jsx";
 import VerifyEmailPage from "./pages/VerifyEmailPage.jsx";
@@ -28,26 +28,35 @@ import VerifyEmailPage from "./pages/VerifyEmailPage.jsx";
 import { useSelector, useDispatch } from "react-redux";
 import StreamVideoProvider from "./providers/StreamVideoProvider.jsx";
 import MeetingPage from "./pages/MeetingPage.jsx";
-
-// ✅ Stream SDK
 import { StreamCall, StreamTheme } from "@stream-io/video-react-sdk";
 import PastMeetings from "./components/PastMeetings.jsx";
+import { toast } from "react-toastify";
 import AcceptInvite from "./pages/AcceptInvite.jsx";
 
-// ✅ Light theme object for Stream UI
 const lightTheme = {
   colors: {
-    primary: "#1D4ED8", // Blue
-    background: "#ffffff", // Page background
-    surface: "#f9f9f9", // Cards, modals, panels
-    textHighEmphasis: "#111111", // Main text
-    textLowEmphasis: "#555555", // Secondary text
-    border: "#e5e5e5", // Divider lines
-    danger: "#dc2626", // Errors
-    success: "#16a34a", // Success states
-    interactive: "#2563eb", // Buttons / active controls
+    primary: "#1D4ED8",
+    background: "#ffffff",
+    surface: "#f9f9f9",
+    textHighEmphasis: "#111111",
+    textLowEmphasis: "#555555",
+    border: "#e5e5e5",
+    danger: "#dc2626",
+    success: "#16a34a",
+    interactive: "#2563eb",
   },
 };
+
+const PUBLIC_ROUTES = [
+  "/",
+  "/login",
+  "/register",
+  "/signup",
+  "/forgot-password",
+  "/reset-password",
+  "/auth-success",
+  "/verify-email",
+];
 
 const AppWrapper = () => {
   const location = useLocation();
@@ -71,6 +80,52 @@ const AppWrapper = () => {
     }
     setRehydrated(true);
   }, [dispatch]);
+
+  useEffect(() => {
+    if (!rehydrated) return;
+
+    if (!user) return;
+
+    if (
+      user || PUBLIC_ROUTES.some(
+        (route) => location.pathname.toLowerCase() === route.toLowerCase()
+      )
+    ) {
+      console.log("public route", user);
+      return;
+    }
+
+    const fetchUser = async () => {
+      try {
+        const res = await fetch(
+          `${import.meta.env.VITE_BACKEND_URL}/api/v1/users/current-user`,
+          {
+            method: "GET",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+          }
+        );
+        console.log("called", res);
+        if (res.status === 401) {
+          dispatch(logout());
+          toast.error("Session expired. Please log in again.");
+          navigate("/login", { replace: true });
+          return;
+        }
+
+        const response = await res.json();
+        if (!res.ok) throw new Error(response || "Failed to fetch user");
+
+        const userData = response?.data;
+        dispatch(updateUserProfile(userData));
+      } catch (error) {
+        console.error("Error fetching current user:", error);
+        toast.error("Unable to load user data.");
+      }
+    };
+
+    fetchUser();
+  }, [dispatch, navigate, rehydrated, user, location.pathname]);
 
   useEffect(() => {
     if (!rehydrated) return;
@@ -145,7 +200,6 @@ const AppWrapper = () => {
                 <Route
                   path="/:id"
                   element={
-                    // ✅ Light themed StreamCall wrapper
                     <StreamTheme theme={lightTheme}>
                       <StreamCall>
                         <MeetingPage />

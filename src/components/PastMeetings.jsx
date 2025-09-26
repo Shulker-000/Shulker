@@ -89,8 +89,6 @@ const PastMeetings = () => {
     fetchMeetings();
   }, [user]);
 
-  console.log(pastMeetings);
-
   const handleAvatarClick = (attendees) => {
     setSelectedAttendees(attendees);
     setIsModalOpen(true);
@@ -178,7 +176,6 @@ const PastMeetings = () => {
         <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
           {pastMeetings.length > 0 ? (
             pastMeetings.map((meeting) => (
-              console.log(meeting.scheduledTime, meeting.endedAt),
               <div
                 key={meeting._id}
                 className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300 cursor-pointer flex flex-col justify-between"
@@ -217,7 +214,7 @@ const PastMeetings = () => {
                   <div className="flex items-center flex-wrap -space-x-2">
                     {meeting.members &&
                       meeting.members.map((member) => (
-                        <div key={member._id}>
+                        <div key={member.user._id}>
                           <img
                             src={member.user.avatar}
                             alt={member.user.username}

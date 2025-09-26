@@ -91,12 +91,12 @@ const Dashboard = () => {
         const call = client.call("default", id);
 
         if (!call) throw new Error("Failed to create call object.");
-      const startsAt = values.dateTime.toISOString() || new Date().toISOString();
-      const description = values.description || "Instant Meeting";
+        const startsAt = values.dateTime.toISOString() || new Date().toISOString();
+        const description = values.description || "Instant Meeting";
         await call.getOrCreate({
           data: {
-          starts_at: startsAt,
-          custom: { description },
+            starts_at: startsAt,
+            custom: { description },
           },
         });
 
@@ -120,7 +120,7 @@ const Dashboard = () => {
         );
 
         if (!response.ok) {
-        throw new Error("Failed to create meeting on backend");
+          throw new Error("Failed to create meeting on backend");
         }
 
         setCallDetail(call);
@@ -186,10 +186,10 @@ const Dashboard = () => {
   };
 
   const upcomingMeetings = meetings.filter(
-    (m) => new Date(m.scheduledTime) > new Date()
+    (m) => m.status == 'scheduled'
   );
   const currentMeetings = meetings.filter(
-    (m) => new Date(m.scheduledTime) <= new Date()
+    (m) => m.status == 'ongoing'
   );
 
   const renderModal = () => {
@@ -368,53 +368,21 @@ const Dashboard = () => {
               </button>
             </div>
           </section>
-
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Current Meetings */}
-            <section className="bg-white p-6 rounded-3xl shadow-lg">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">Current Meetings</h2>
-              <ul className="space-y-4">
-                {currentMeetings.length > 0 ? (
-                  currentMeetings.map((meeting) => (
-                    <li key={meeting._id || meeting.id} className="p-4 rounded-2xl bg-gray-50 flex justify-between items-center">
-                      <div>
-                        <div className="text-lg font-semibold">{meeting.title || "Meeting"}</div>
-                        <div className="text-sm text-gray-500">
-                          {new Date(meeting.scheduledTime).toLocaleString()}
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => navigate(`/meetings/${meeting.id}`)}
-                        className="px-4 py-2 bg-purple-600 text-white rounded-full hover:bg-purple-700 transition-colors"
-                      >
-                        Join
-                      </button>
-                    </li>
-                  ))
-                ) : (
-                  <p className="text-gray-500">No ongoing meetings right now.</p>
-                )}
-              </ul>
-            </section>
-
-            {/* Upcoming Meetings */}
             <section className="bg-white p-6 rounded-3xl shadow-lg">
               <h2 className="text-2xl font-bold text-gray-900 mb-4">Upcoming Meetings</h2>
               <ul className="space-y-4">
                 {upcomingMeetings.length > 0 ? (
                   upcomingMeetings.map((meeting) => (
-                    <li key={meeting._id || meeting.id} className="p-4 rounded-2xl bg-gray-50 flex justify-between items-center">
-                      
+                    <li key={meeting._id} className="p-4 rounded-2xl bg-gray-50 flex justify-between items-center">
                       <div>
-                      {
-                      console.log(meeting.id)}
                         <div className="text-lg font-semibold">{meeting.title || "Meeting"}</div>
                         <div className="text-sm text-gray-500">
                           {new Date(meeting.scheduledTime).toLocaleString()}
                         </div>
                       </div>
                       <button
-                        onClick={() => navigate(`/meetings/${meeting._id || meeting.id}`)}
+                        onClick={() => navigate(`/meetings/${meeting.meetingId}`)}
                         className="px-4 py-2 bg-purple-600 text-white rounded-full hover:bg-purple-700 transition-colors"
                       >
                         Join
@@ -423,6 +391,32 @@ const Dashboard = () => {
                   ))
                 ) : (
                   <p className="text-gray-500">No upcoming meetings.</p>
+                )}
+              </ul>
+            </section>
+            {/* Current Meetings */}
+            <section className="bg-white p-6 rounded-3xl shadow-lg">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">Current Meetings</h2>
+              <ul className="space-y-4">
+                {currentMeetings.length > 0 ? (
+                  currentMeetings.map((meeting) => (
+                    <li key={meeting._id} className="p-4 rounded-2xl bg-gray-50 flex justify-between items-center">
+                      <div>
+                        <div className="text-lg font-semibold">{meeting.title || "Meeting"}</div>
+                        <div className="text-sm text-gray-500">
+                          {new Date(meeting.scheduledTime).toLocaleString()}
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => navigate(`/meetings/${meeting.meetingId}`)}
+                        className="px-4 py-2 bg-purple-600 text-white rounded-full hover:bg-purple-700 transition-colors"
+                      >
+                        Join
+                      </button>
+                    </li>
+                  ))
+                ) : (
+                  <p className="text-gray-500">No ongoing meetings right now.</p>
                 )}
               </ul>
             </section>

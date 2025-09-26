@@ -40,8 +40,8 @@ const EndCallButton = ({ meetingId }) => {
       if (!response.ok) {
         console.error("Failed to notify backend about ending the meeting");
       }
-
-      await call.endCall();
+      if (response.ok)
+        await call.endCall();
     } catch (err) {
       console.error("Error ending call:", err);
     } finally {
