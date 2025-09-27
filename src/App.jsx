@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -20,17 +20,16 @@ import NotFoundPage from "./pages/NotFoundPage";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/resetPassword/[token].jsx";
 import Dashboard from "./pages/Dashboard.jsx";
-import { login, logout, updateUserProfile } from "./features/authSlice";
 import AuthSuccess from "./pages/AuthSuccess.jsx";
 import ProfilePage from "./pages/ProfilePage.jsx";
 import VerifyEmailPage from "./pages/VerifyEmailPage.jsx";
 
-import { useSelector, useDispatch } from "react-redux";
+import { useSelector } from "react-redux";
 import StreamVideoProvider from "./providers/StreamVideoProvider.jsx";
 import MeetingPage from "./pages/MeetingPage.jsx";
 import { StreamCall, StreamTheme } from "@stream-io/video-react-sdk";
+import AuthProvider from "./providers/AuthProvider.jsx";
 import PastMeetings from "./components/PastMeetings.jsx";
-import { toast } from "react-toastify";
 import AcceptInvite from "./pages/AcceptInvite.jsx";
 
 const lightTheme = {
@@ -47,88 +46,11 @@ const lightTheme = {
   },
 };
 
-const PUBLIC_ROUTES = [
-  "/",
-  "/login",
-  "/register",
-  "/signup",
-  "/forgot-password",
-  "/reset-password",
-  "/auth-success",
-  "/verify-email",
-];
-
 const AppWrapper = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const dispatch = useDispatch();
   const user = useSelector((state) => state.auth.user);
-
-  const [rehydrated, setRehydrated] = useState(false);
-
   useEffect(() => {
-    const token = localStorage.getItem("authToken");
-    const storedUser = localStorage.getItem("authUser");
-
-    if (token && storedUser) {
-      dispatch(
-        login({
-          user: JSON.parse(storedUser),
-          token: token,
-        })
-      );
-    }
-    setRehydrated(true);
-  }, [dispatch]);
-
-  useEffect(() => {
-    if (!rehydrated) return;
-
-    if (!user) return;
-
-    if (
-      user || PUBLIC_ROUTES.some(
-        (route) => location.pathname.toLowerCase() === route.toLowerCase()
-      )
-    ) {
-      console.log("public route", user);
-      return;
-    }
-
-    const fetchUser = async () => {
-      try {
-        const res = await fetch(
-          `${import.meta.env.VITE_BACKEND_URL}/api/v1/users/current-user`,
-          {
-            method: "GET",
-            headers: { "Content-Type": "application/json" },
-            credentials: "include",
-          }
-        );
-        console.log("called", res);
-        if (res.status === 401) {
-          dispatch(logout());
-          toast.error("Session expired. Please log in again.");
-          navigate("/login", { replace: true });
-          return;
-        }
-
-        const response = await res.json();
-        if (!res.ok) throw new Error(response || "Failed to fetch user");
-
-        const userData = response?.data;
-        dispatch(updateUserProfile(userData));
-      } catch (error) {
-        console.error("Error fetching current user:", error);
-        toast.error("Unable to load user data.");
-      }
-    };
-
-    fetchUser();
-  }, [dispatch, navigate, rehydrated, user, location.pathname]);
-
-  useEffect(() => {
-    if (!rehydrated) return;
 
     if (user) {
       if (["/", "/login", "/register", "/signup"].includes(location.pathname)) {
@@ -139,7 +61,7 @@ const AppWrapper = () => {
         navigate("/login", { replace: true });
       }
     }
-  }, [user, location.pathname, navigate, rehydrated]);
+  }, [user, location.pathname, navigate]);
 
   const hideNavbarFooterRoutes = [
     "whiteboard",
@@ -155,13 +77,6 @@ const AppWrapper = () => {
     location.pathname.split("/")[1]
   );
 
-  if (!rehydrated) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <p>Loading...</p>
-      </div>
-    );
-  }
 
   return (
     <>
@@ -221,7 +136,9 @@ const AppWrapper = () => {
 const App = () => {
   return (
     <Router>
-      <AppWrapper />
+      <AuthProvider>
+        <AppWrapper />
+      </AuthProvider>
     </Router>
   );
 };
