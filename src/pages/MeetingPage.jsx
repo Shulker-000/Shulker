@@ -19,7 +19,7 @@ const MeetingPage = () => {
   if (!user || isCallLoading) {
     return (
       <div className="flex flex-col items-center justify-center h-screen bg-gray-50 text-gray-800">
-        <Loader className="animate-spin text-gray-700 w-16 h-16" />
+        <Loader />
         <p className="mt-4 text-lg font-medium">Preparing your meeting...</p>
       </div>
     );
