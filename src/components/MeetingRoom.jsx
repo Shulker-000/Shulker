@@ -142,13 +142,13 @@ const MeetingRoom = () => {
   const CallLayout = () => {
     switch (layout) {
       case "grid":
-        return <PaginatedGridLayout />;
+        return <SpeakerLayout participantsBarPosition="right" />;
       case "speaker-left":
         return <SpeakerLayout participantsBarPosition="left" />;
       case "speaker-right":
         return <SpeakerLayout participantsBarPosition="right" />;
       default:
-        return <SpeakerLayout participantsBarPosition="grid" />;
+        return <SpeakerLayout participantsBarPosition="left" />;
     }
   };
 
