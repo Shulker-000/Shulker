@@ -51,8 +51,6 @@ const MeetingRoom = () => {
 
   const {
     useCallCallingState,
-    useCallClosedCaptions,
-    useIsCallCaptioningInProgress,
   } = useCallStateHooks();
 
   const call = useCall();
@@ -127,8 +125,6 @@ const MeetingRoom = () => {
   }, [user, call, streamToken, navigate]);
 
   const callingState = useCallCallingState();
-  const closedCaptions = useCallClosedCaptions();
-  const isCaptioningInProgress = useIsCallCaptioningInProgress();
 
   if (callingState !== CallingState.JOINED) {
     return <Loader />;
@@ -222,18 +218,6 @@ const MeetingRoom = () => {
             // Removed: user prop - no longer needed in MeetingChat component
           />
         </div>
-
-        {/* Closed Captions */}
-        {isCaptioningInProgress && closedCaptions.length > 0 && (
-          <div className="absolute bottom-[50vh] left-1/2 -translate-x-1/2 bg-black/60 text-white px-4 py-2 rounded-lg text-sm max-w-[80%] text-center">
-            {closedCaptions.map(({ user, text, start_time }) => (
-              <p key={`${user.id}-${start_time}`} className="caption-line">
-                <span className="font-semibold">{user?.name || user?.id}:</span>{" "}
-                {text}
-              </p>
-            ))}
-          </div>
-        )}
 
         {/* Bottom Controls */}
         <div className="fixed bottom-0 left-0 w-full flex items-center justify-center gap-4 py-4 px-6 bg-white/95 backdrop-blur-md shadow-lg border-t border-gray-200">
