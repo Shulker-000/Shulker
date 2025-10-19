@@ -180,7 +180,9 @@ const PastMeetings = () => {
                 key={meeting._id}
                 className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300 cursor-pointer flex flex-col justify-between"
               >
-                <div onClick={() => navigate(`/meetings/${meeting._id}/report`)}>
+                <div 
+                // onClick={() => navigate(`/meetings/${meeting._id}/report`)}
+                >
                   <div className="flex items-start justify-between mb-4">
                     <h2 className="text-lg sm:text-xl font-semibold text-gray-900">
                       {formatMeetingTitle(meeting.scheduledTime, meeting.endedAt)
@@ -217,12 +219,13 @@ const PastMeetings = () => {
                         <div key={member.user._id}>
                           <img
                             src={member.user.avatar}
+                            title={member.user.username}
                             alt={member.user.username}
                             className="w-8 h-8 rounded-full border-2 border-white object-cover shadow-sm transition-transform duration-200 hover:scale-110 cursor-pointer"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleAvatarClick(meeting.members);
-                            }}
+                            // onClick={(e) => {
+                            //   e.stopPropagation();
+                            //   handleAvatarClick(meeting.members);
+                            // }}
                           />
                         </div>
                       ))}

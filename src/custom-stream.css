@@ -357,3 +357,149 @@ button:hover,
 .str-video__icon:hover {
   cursor: pointer !important;
 }
+
+.meeting-chat {
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100vh;
+  width: 320px; /* Same as participants sidebar */
+  background-color: #ffffff;
+  border-left: 1px solid #e5e7eb;
+  backdrop-filter: blur(8px);
+  box-shadow: -2px 0 12px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  transform: translateX(100%);
+  transition: transform 0.3s ease-in-out;
+  z-index: 20;
+  border-radius: 0 12px 12px 0;
+}
+
+/* Sidebar open */
+.meeting-chat.show {
+  transform: translateX(0);
+}
+
+/* Header */
+.meeting-chat-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  border-bottom: 1px solid #e5e7eb;
+  font-weight: 600;
+  font-size: 16px;
+  background-color: #f9fafb;
+}
+
+/* Close button */
+.meeting-chat-header button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  color: #374151;
+}
+
+/* Messages container */
+.meeting-chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column-reverse; /* start from bottom */
+  gap: 12px;
+  background-color: #ffffff;
+}
+
+/* Individual message */
+.meeting-message {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  word-break: break-word;
+}
+
+/* Self message alignment */
+.meeting-message.self {
+  justify-content: flex-end;
+}
+
+/* Avatar */
+.meeting-message-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+/* Message bubble */
+.meeting-message-bubble {
+  max-width: 70%;
+  padding: 10px 14px;
+  border-radius: 16px;
+  background-color: #f3f4f6;
+  font-size: 14px;
+  color: #111827;
+  /* box-shadow: 0 1px 2px rgba(0,0,0,0.08); */
+  display: inline-block;
+  line-height: 1.4;
+  word-wrap: break-word;
+}
+
+/* Hover effect */
+.meeting-message-bubble:hover {
+  background-color: #e5e7eb;
+}
+
+/* Self bubble style */
+.meeting-message.self .meeting-message-bubble {
+  background-color: #fff;
+  color: #000;
+  /* box-shadow: 0 1px 4px rgba(0,0,0,0.15); */
+}
+
+/* User name in message */
+.meeting-message-username {
+  font-weight: 600;
+  font-size: 13px;
+  margin-bottom: 4px;
+  color: #111827;
+}
+
+/* Input container */
+.meeting-chat-input {
+  padding: 12px 16px;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  gap: 8px;
+  background-color: #f9fafb;
+  border-radius: 0 0 12px 12px;
+}
+
+/* Input box */
+.meeting-chat-input input {
+  flex: 1;
+  padding: 10px 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  font-size: 14px;
+  outline: none;
+}
+
+/* Send button */
+.meeting-chat-input button {
+  padding: 10px 14px;
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.meeting-chat-input button:hover {
+  background-color: #2563eb;
+}

@@ -5,7 +5,7 @@ import {
   CallParticipantsList,
   CallStatsButton,
   CallingState,
-  PaginatedGridLayout,
+  // PaginatedGridLayout, // Not used in final render
   SpeakerLayout,
   useCallStateHooks,
   useCall,
@@ -20,13 +20,7 @@ import {
   MessageCircle,
   SquarePen,
 } from "lucide-react";
-import {
-  Chat,
-  Channel,
-  MessageList,
-  MessageInput,
-} from "stream-chat-react";
-import { StreamChat } from "stream-chat";
+import { StreamChat } from "stream-chat"; // Keep StreamChat for client initialization
 import { toast } from "react-toastify";
 import {
   DropdownMenu,
@@ -35,6 +29,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "./ui/DropdownMenu.jsx";
+import MeetingChat from "./MeetingChat.jsx";
 import Loader from "./Loader.jsx";
 import EndCallButton from "./EndCallButton.jsx";
 import { cn } from "../lib/utils";
@@ -56,8 +51,6 @@ const MeetingRoom = () => {
 
   const {
     useCallCallingState,
-    useCallClosedCaptions,
-    useIsCallCaptioningInProgress,
   } = useCallStateHooks();
 
   const call = useCall();
@@ -78,6 +71,7 @@ const MeetingRoom = () => {
 
     const apiKey = import.meta.env.VITE_STREAM_API_KEY;
     if (!apiKey) {
+      console.error("Stream API Key not found.");
       return;
     }
 
@@ -97,7 +91,7 @@ const MeetingRoom = () => {
           {
             id: userIdString,
             name: user.name || user.username || userIdString,
-            image: user.image || "",
+            image: user.image || user.avatar || "", // Use user.avatar if available from redux/backend
           },
           streamToken
         );
@@ -105,9 +99,8 @@ const MeetingRoom = () => {
         const channelId = "meeting-room-" + call.id;
         const meetingChannel = client.channel("messaging", channelId, {
           name: "Meeting Room Chat",
-          members: [userIdString],
         });
-        await meetingChannel.watch();
+        await meetingChannel.watch(); 
 
         if (isMounted) {
           setChannel(meetingChannel);
@@ -132,8 +125,6 @@ const MeetingRoom = () => {
   }, [user, call, streamToken, navigate]);
 
   const callingState = useCallCallingState();
-  const closedCaptions = useCallClosedCaptions();
-  const isCaptioningInProgress = useIsCallCaptioningInProgress();
 
   if (callingState !== CallingState.JOINED) {
     return <Loader />;
@@ -142,20 +133,21 @@ const MeetingRoom = () => {
   const CallLayout = () => {
     switch (layout) {
       case "grid":
-        return <PaginatedGridLayout />;
+        return <SpeakerLayout participantsBarPosition="right" />;
       case "speaker-left":
         return <SpeakerLayout participantsBarPosition="left" />;
       case "speaker-right":
         return <SpeakerLayout participantsBarPosition="right" />;
       default:
-        return <SpeakerLayout participantsBarPosition="grid" />;
+        return <SpeakerLayout participantsBarPosition="left" />;
     }
   };
 
   const copyLink = () => {
     if (call) {
-      const meetingId = call.id;
-      navigator.clipboard.writeText(meetingId);
+      // Assuming the link to join the meeting uses the call.id
+      const meetingLink = `${window.location.origin}/meetings/${call.id}`; 
+      navigator.clipboard.writeText(meetingLink);
       toast.success("Meeting link copied!");
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
@@ -211,43 +203,21 @@ const MeetingRoom = () => {
             )}
           >
             <div className="h-full p-4">
-              <CallParticipantsList onClose={() => setShowParticipants(false)} />
+              <CallParticipantsList
+                onClose={() => setShowParticipants(false)}
+              />
             </div>
           </div>
 
           {/* Chat Sidebar */}
-          <div
-            className={cn(
-              "fixed inset-y-0 right-0 z-20 w-80 bg-white/95 backdrop-blur-md shadow-lg border-l border-gray-200 transform transition-transform duration-300",
-              showChat ? "translate-x-0" : "translate-x-full"
-            )}
-          >
-            <div className="h-full flex flex-col p-4">
-              {chatClient && channel ? (
-                <Chat client={chatClient} theme="messaging light">
-                  <Channel channel={channel}>
-                    <MessageList />
-                    <MessageInput />
-                  </Channel>
-                </Chat>
-              ) : (
-                <Loader />
-              )}
-            </div>
-          </div>
+          <MeetingChat
+            chatClient={chatClient}
+            channel={channel}
+            showChat={showChat}
+            setShowChat={setShowChat}
+            // Removed: user prop - no longer needed in MeetingChat component
+          />
         </div>
-
-        {/* Closed Captions */}
-        {isCaptioningInProgress && closedCaptions.length > 0 && (
-          <div className="absolute bottom-[50vh] left-1/2 -translate-x-1/2 bg-black/60 text-white px-4 py-2 rounded-lg text-sm max-w-[80%] text-center">
-            {closedCaptions.map(({ user, text, start_time }) => (
-              <p key={`${user.id}-${start_time}`} className="caption-line">
-                <span className="font-semibold">{user?.name || user?.id}:</span>{" "}
-                {text}
-              </p>
-            ))}
-          </div>
-        )}
 
         {/* Bottom Controls */}
         <div className="fixed bottom-0 left-0 w-full flex items-center justify-center gap-4 py-4 px-6 bg-white/95 backdrop-blur-md shadow-lg border-t border-gray-200">
