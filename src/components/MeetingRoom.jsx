@@ -146,7 +146,7 @@ const MeetingRoom = () => {
   const copyLink = () => {
     if (call) {
       // Assuming the link to join the meeting uses the call.id
-      const meetingLink = `${window.location.origin}/meeting/${call.id}`; 
+      const meetingLink = `${window.location.origin}/meetings/${call.id}`; 
       navigator.clipboard.writeText(meetingLink);
       toast.success("Meeting link copied!");
       setCopied(true);
