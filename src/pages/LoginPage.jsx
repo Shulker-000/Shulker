@@ -53,7 +53,7 @@ const Login = () => {
       newErrors.password = "Password is required.";
     }
     return newErrors;
-  }; 
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -78,27 +78,33 @@ const Login = () => {
           }),
           credentials: "include",
         }
-      );
+      ); // --- PROPER ERROR HANDLING CHECK ---
 
-      const responseData = await res.json().catch(() => null);
+      if (!res.ok) {
+        // Safely parse the JSON error body to get the specific message (ApiError.message)
+        const errorData = await res.json().catch(() => ({}));
+        const errorMessage =
+          errorData.message ||
+          `Login failed. Server Error: Status ${res.status}.`; // Throw the specific message to the catch block for consistent handling
 
-      if (responseData.success) {
-        if (responseData?.data.accessToken && responseData?.data.user) {
-          // // // Store token & user in localStorage
-          localStorage.setItem("authToken", responseData.data.accessToken);
-          localStorage.setItem(
-            "authUser",
-            JSON.stringify(responseData.data.user)
-          );
+        throw new Error(errorMessage);
+      } // Success logic: Only execute if response.ok is true
 
-          // Update Redux state
-          dispatch(
-            login({
-              user: responseData.data.user,
-              token: responseData.data.accessToken,
-            })
-          );
-        }
+      const responseData = await res.json();
+      if (responseData?.data.accessToken && responseData?.data.user) {
+        // Store token & user in localStorage
+        localStorage.setItem("authToken", responseData.data.accessToken);
+        localStorage.setItem(
+          "authUser",
+          JSON.stringify(responseData.data.user)
+        ); // Update Redux state
+
+        dispatch(
+          login({
+            user: responseData.data.user,
+            token: responseData.data.accessToken,
+          })
+        );
 
         toast.success(
           responseData.message || "Login successful! Redirecting..."
@@ -108,20 +114,15 @@ const Login = () => {
           navigate("/dashboard");
         }, 1500);
       } else {
-        const errorMessage = responseData?.message;
-        if (res.status === 401 || res.status === 404) {
-          toast.error(
-            errorMessage ||
-            "Invalid credentials. Please check your email and password."
-          );
-        } else {
-          toast.error(errorMessage || "Login failed. Please try again.");
-        }
+        // This case should theoretically not be hit if backend follows ApiResponse pattern correctly
+        throw new Error("Login failed due to unexpected response structure.");
       }
     } catch (err) {
-      console.error("Login network error:", err);
+      // This catch handles network errors AND the specific API error thrown above
+      console.error("Login error:", err); // Display the error message carried by the thrown error object
       toast.error(
-        "A network error occurred. Please check your connection and try again."
+        err.message ||
+          "A network error occurred. Please check your connection and try again."
       );
     } finally {
       setIsLoading(false);
@@ -205,8 +206,8 @@ const Login = () => {
                     onBlur={handleBlur}
                     className={`block w-full pl-10 pr-3 py-2.5 border rounded-lg shadow-sm focus:outline-none focus:ring-2 ${
                       errors.email
-                      ? "border-red-500 focus:ring-red-500"
-                      : "border-gray-300 focus:ring-indigo-500"
+                        ? "border-red-500 focus:ring-red-500"
+                        : "border-gray-300 focus:ring-indigo-500"
                     }`}
                     placeholder="your-email@email.com"
                   />
@@ -235,10 +236,11 @@ const Login = () => {
                     value={formData.password}
                     onChange={handleInputChange}
                     onBlur={handleBlur}
-                    className={`block w-full pl-10 pr-10 py-2.5 border rounded-lg shadow-sm focus:outline-none focus:ring-2 ${errors.password
+                    className={`block w-full pl-10 pr-10 py-2.5 border rounded-lg shadow-sm focus:outline-none focus:ring-2 ${
+                      errors.password
                         ? "border-red-500 focus:ring-red-500"
                         : "border-gray-300 focus:ring-indigo-500"
-                      }`}
+                    }`}
                     placeholder="Enter your password"
                   />
                   <button
@@ -307,7 +309,9 @@ const Login = () => {
                 <button
                   type="button"
                   onClick={() => {
-                    window.location.href = `${import.meta.env.VITE_BACKEND_URL}/api/v1/users/auth/google`;
+                    window.location.href = `${
+                      import.meta.env.VITE_BACKEND_URL
+                    }/api/v1/users/auth/google`;
                   }}
                   className="w-full inline-flex items-center justify-center py-2.5 px-4 rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 text-sm font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                 >
