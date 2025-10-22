@@ -50,14 +50,43 @@ const AppWrapper = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const user = useSelector((state) => state.auth.user);
+
   useEffect(() => {
+    const pathname = location.pathname;
+
+    const publicBaseRoutes = [
+      "/",
+      "/login",
+      "/register",
+      "/signup",
+      "/forgot-password",
+      "/auth-success",
+      "/contact",
+      "/about",
+      "/notfound",
+    ];
+
+    const dynamicPublicPrefixes = [
+      "/reset-password",
+      "/verify-email",
+      "/accept-invite",
+    ];
+
+    const isPublicRoute =
+      publicBaseRoutes.includes(pathname) ||
+      dynamicPublicPrefixes.some(
+        (prefix) => pathname === prefix || pathname.startsWith(prefix + "/")
+      );
+
+    // Wait until auth is loaded
+    if (user === undefined) return;
 
     if (user) {
-      if (["/", "/login", "/register", "/signup"].includes(location.pathname)) {
+      if (["/", "/login", "/register", "/signup"].includes(pathname)) {
         navigate("/dashboard", { replace: true });
       }
     } else {
-      if (["/dashboard", "/profile"].includes(location.pathname)) {
+      if (!isPublicRoute) {
         navigate("/login", { replace: true });
       }
     }
@@ -76,7 +105,6 @@ const AppWrapper = () => {
   const shouldHideNavbarFooter = hideNavbarFooterRoutes.includes(
     location.pathname.split("/")[1]
   );
-
 
   return (
     <>

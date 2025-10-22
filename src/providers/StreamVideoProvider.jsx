@@ -25,13 +25,21 @@ const tokenProvider = async (userId, dispatch) => {
     }
   );
 
-  const res = await response.json();
-  if (res?.data?.token) {
-    dispatch(setStreamToken(res.data.token));
-    return res.data.token;
-  } else {
-    throw new Error("Stream token not received from backend.");
+  // ✅ FIX: Parse JSON only once
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    const errorMessage =
+      data.message || `Server Error: Status ${response.status}`;
+    throw new Error(errorMessage);
   }
+
+  if (data?.data?.token) {
+    dispatch(setStreamToken(data.data.token));
+    return data.data.token;
+  }
+
+  throw new Error("Stream token not received in backend response.");
 };
 
 const StreamVideoProvider = ({ children }) => {
@@ -42,24 +50,17 @@ const StreamVideoProvider = ({ children }) => {
   const isLoggedIn = !!user && !!token;
 
   useEffect(() => {
-    if (!isLoggedIn || !user?._id) {
-      if (videoClient) {
-        videoClient.disconnectUser();
-        setVideoClient(null);
-      }
-      setLoading(false);
-      return;
-    }
-
-    if (!API_KEY) {
-      console.error("Stream API key is missing");
-      setLoading(false);
-      return;
-    }
+    let client;
 
     const createClient = async () => {
       try {
-        const client = StreamVideoClient.getOrCreateInstance({
+        if (!API_KEY) {
+          console.error("Stream API key is missing");
+          setLoading(false);
+          return;
+        }
+
+        client = StreamVideoClient.getOrCreateInstance({
           apiKey: API_KEY,
           user: {
             id: user._id,
@@ -76,10 +77,21 @@ const StreamVideoProvider = ({ children }) => {
       }
     };
 
-    if (!videoClient) {
+    if (isLoggedIn && user?._id) {
       createClient();
+    } else if (videoClient) {
+      videoClient.disconnectUser();
+      setVideoClient(null);
+      setLoading(false);
     }
-  }, [user, token, isLoggedIn]);
+
+    // ✅ FIX: Cleanup on unmount or re-render
+    return () => {
+      if (client) {
+        client.disconnectUser();
+      }
+    };
+  }, [user, token, isLoggedIn, dispatch]);
 
   if (loading || !videoClient) return <Loader />;
 

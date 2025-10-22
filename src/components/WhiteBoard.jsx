@@ -8,11 +8,11 @@ const Whiteboard = () => {
   const handleReset = () => {
     if (appRef.current) {
       // Clear all shapes
-      appRef.current.shapes.forEach(shape => {
+      appRef.current.shapes.forEach((shape) => {
         appRef.current.deleteShapes([shape.id]);
       });
       // Clear pages if multiple pages exist
-      appRef.current.pages.forEach(page => {
+      appRef.current.pages.forEach((page) => {
         if (page.id !== appRef.current.currentPageId) {
           appRef.current.deletePage(page.id);
         }

@@ -10,12 +10,10 @@ import {
   Home,
   Info,
   Mail,
-  Building,
-  Users,
   Loader2,
 } from "lucide-react";
 import { useSelector, useDispatch } from "react-redux";
-import { logout } from "./../features/authSlice"; // Import the logout action from your authSlice
+import { logout } from "../features/authSlice";
 import { toast } from "react-toastify";
 
 // Custom hook to detect clicks outside a referenced element
@@ -46,7 +44,6 @@ const authRoutes = {
 };
 
 // --- Reusable Child Components ---
-
 const NavItem = ({ item, currentPath, onLinkClick, isMobile = false }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
@@ -54,8 +51,7 @@ const NavItem = ({ item, currentPath, onLinkClick, isMobile = false }) => {
   const hasDropdown =
     Array.isArray(item.dropdownItems) && item.dropdownItems.length > 0;
   const isActive =
-    currentPath.startsWith(item.route) &&
-    (currentPath === "/" ? item.route === "/" : true);
+    currentPath === item.route || currentPath.startsWith(item.route + "/");
 
   useClickOutside(dropdownRef, () => setIsDropdownOpen(false));
 
@@ -87,7 +83,6 @@ const NavItem = ({ item, currentPath, onLinkClick, isMobile = false }) => {
           onClick={() => setIsDropdownOpen(!isDropdownOpen)}
           className={navLinkClasses}
           aria-expanded={isDropdownOpen}
-          aria-controls={`dropdown-${item.id}`}
         >
           <item.icon className={`h-5 w-5 ${isMobile ? "mr-4" : "mr-2"}`} />
           {item.label}
@@ -109,14 +104,13 @@ const NavItem = ({ item, currentPath, onLinkClick, isMobile = false }) => {
       )}
       {hasDropdown && isDropdownOpen && (
         <div
-          id={`dropdown-${item.id}`}
           className={
             isMobile
               ? "w-full bg-gray-50 rounded-lg mt-2 py-2"
-              : "absolute top-full left-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 animate-in fade-in slide-in-from-top-2 duration-200"
+              : "absolute top-full left-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 transition-transform duration-200"
           }
         >
-          {item.dropdownItems.map((dropdownItem) => (
+          {item.dropdownItems?.map((dropdownItem) => (
             <Link
               key={dropdownItem.id}
               to={dropdownItem.route}
@@ -190,17 +184,13 @@ const ProfileDropdown = ({
     onLogout();
   };
 
-  const handleLinkClick = (e) => {
-    setIsOpen(false);
-    if (onLinkClick) onLinkClick(e);
-  };
-
-  // New handler for profile click
   const handleProfileClick = () => {
     setIsOpen(false);
     navigate(authRoutes.profile);
     if (onLinkClick) onLinkClick();
   };
+
+  const avatarUrl = user?.avatar || "/default-avatar.png"; // local fallback
 
   if (isMobile) {
     return (
@@ -211,7 +201,7 @@ const ProfileDropdown = ({
         </div>
         <Link
           to={authRoutes.dashboard}
-          onClick={handleLinkClick}
+          onClick={onLinkClick}
           className="flex items-center w-full px-4 py-3 text-lg font-medium text-gray-700 hover:bg-gray-100 hover:text-blue-600 rounded-xl"
         >
           <Settings className="h-5 w-5 mr-4" />
@@ -219,7 +209,7 @@ const ProfileDropdown = ({
         </Link>
         <Link
           to={authRoutes.profile}
-          onClick={handleLinkClick}
+          onClick={onLinkClick}
           className="flex items-center w-full px-4 py-3 text-lg font-medium text-gray-700 hover:bg-gray-100 hover:text-blue-600 rounded-xl"
         >
           <User className="h-5 w-5 mr-4" />
@@ -255,28 +245,21 @@ const ProfileDropdown = ({
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center space-x-2 p-1 rounded-full hover:bg-gray-100 transition-colors"
         aria-expanded={isOpen}
-        aria-controls="profile-dropdown"
       >
         <img
-              src={
-                user.avatar ||
-                `https://ui-avatars.com/api/?name=${user?.username}&background=4f46e5&color=fff&size=200`
-              }
-              alt="Profile"
-              className="w-10 h-10 object-cover rounded-full border-4 border-white transition-transform duration-300 group-hover:scale-105"
-            />
+          src={avatarUrl}
+          alt="Profile"
+          className="w-10 h-10 object-cover rounded-full border-4 border-white"
+        />
         <ChevronDown
-          className={`h-4 w-4 text-gray-500 transition-transform duration-200 ${
+          className={`h-4 w-4 text-gray-500 transition-transform ${
             isOpen ? "rotate-180" : ""
           }`}
         />
       </button>
 
       {isOpen && (
-        <div
-          id="profile-dropdown"
-          className="absolute right-0 top-full mt-2 w-64 bg-white rounded-lg shadow-xl border py-2 animate-in fade-in slide-in-from-top-2 duration-200"
-        >
+        <div className="absolute right-0 top-full mt-2 w-64 bg-white rounded-lg shadow-xl border py-2 transition-transform duration-200">
           <div className="px-4 py-3 border-b">
             <p className="text-sm font-medium text-gray-900 truncate">
               {user?.username}
@@ -324,10 +307,9 @@ const Navbar = () => {
   const navigate = useNavigate();
   const currentPath = location.pathname;
 
-  // 1. Use Redux hooks to get state and dispatch
   const dispatch = useDispatch();
   const user = useSelector((state) => state.auth.user);
-  const isAuthenticated = !!user; // The user object will be null if not authenticated
+  const isAuthenticated = !!user;
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 10);
@@ -336,45 +318,36 @@ const Navbar = () => {
   }, []);
 
   useEffect(() => {
-    if (isMobileMenuOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "unset";
-    }
-    return () => {
-      document.body.style.overflow = "unset";
-    };
+    document.body.style.overflow = isMobileMenuOpen ? "hidden" : "unset";
+    return () => (document.body.style.overflow = "unset");
   }, [isMobileMenuOpen]);
 
   const closeMobileMenu = () => setIsMobileMenuOpen(false);
 
-  // 2. Updated Logout Handler to use Redux and the imported action
   const handleLogout = async () => {
     setIsLoggingOut(true);
     try {
-      const backendUrl = import.meta.env.VITE_BACKEND_URL;
-      const logoutUrl = `${backendUrl}/api/v1/users/logout`;
-
+      const logoutUrl = `${
+        import.meta.env.VITE_BACKEND_URL
+      }/api/v1/users/logout`;
       const response = await fetch(logoutUrl, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
         credentials: "include",
       });
 
       if (!response.ok) {
-        throw new Error("Logout failed on the server.");
+        const errorData = await response.json().catch(() => ({}));
+        toast.error(errorData.message || `Server error: ${response.status}`);
+        return;
       }
 
-      // 3. Dispatch the logout action
       dispatch(logout());
       toast.success("Logged out successfully!");
-
       closeMobileMenu();
       navigate("/");
-    } catch (error) {
-      console.error("Logout error:", error);
+    } catch (err) {
+      console.error("Logout error:", err);
+      toast.error("Network error. Could not logout.");
     } finally {
       setIsLoggingOut(false);
     }
@@ -389,7 +362,6 @@ const Navbar = () => {
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            {/* Logo */}
             <Link
               to="/"
               onClick={closeMobileMenu}
@@ -404,7 +376,6 @@ const Navbar = () => {
               </span>
             </Link>
 
-            {/* Desktop Navigation */}
             <div className="hidden lg:flex items-center space-x-1">
               {navItems.map((item) => (
                 <NavItem
@@ -416,10 +387,8 @@ const Navbar = () => {
               ))}
             </div>
 
-            {/* Desktop Auth & Profile */}
             <div className="hidden lg:flex items-center">
               {isAuthenticated ? (
-                // Use the Redux 'user' state directly
                 <ProfileDropdown
                   user={user}
                   onLogout={handleLogout}
@@ -430,7 +399,6 @@ const Navbar = () => {
               )}
             </div>
 
-            {/* Mobile menu button */}
             <div className="lg:hidden flex items-center">
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -449,21 +417,13 @@ const Navbar = () => {
         </div>
       </nav>
 
-      {/* Full-page Mobile Menu Overlay */}
       {isMobileMenuOpen && (
         <div className="fixed inset-0 z-[51] lg:hidden">
-          {/* Backdrop with translucent blur effect */}
           <div
-            className="fixed inset-0 bg-gray-800/60 backdrop-blur-md transition-opacity duration-300"
+            className="fixed inset-0 bg-gray-800/60 backdrop-blur-md"
             onClick={closeMobileMenu}
-            role="button"
-            tabIndex={0}
-            aria-label="Close menu backdrop"
           />
-
-          {/* Menu container that slides in from the right */}
-          <div className="fixed top-0 right-0 w-full max-w-sm h-full bg-white shadow-xl transform transition-transform duration-300 ease-out animate-in slide-in-from-right-full">
-            {/* Menu header with logo and close button */}
+          <div className="fixed top-0 right-0 w-full max-w-sm h-full bg-white shadow-xl transition-transform duration-300 ease-out">
             <div className="flex items-center justify-between px-4 h-16 border-b border-gray-200">
               <Link
                 to="/"
@@ -476,13 +436,11 @@ const Navbar = () => {
               <button
                 onClick={closeMobileMenu}
                 className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg"
-                aria-label="Close menu"
               >
                 <X className="h-6 w-6" />
               </button>
             </div>
 
-            {/* Mobile navigation items */}
             <div className="p-4 space-y-1">
               {navItems.map((item) => (
                 <NavItem
@@ -495,9 +453,7 @@ const Navbar = () => {
               ))}
             </div>
 
-            {/* Mobile auth buttons or profile dropdown */}
             {isAuthenticated ? (
-              // Use the Redux 'user' state directly
               <ProfileDropdown
                 user={user}
                 onLogout={handleLogout}

@@ -2,12 +2,13 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { CheckCircle } from "lucide-react";
-import { toast } from "react-toastify";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function VerifyEmailPage() {
   const { token } = useParams();
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(true); // start as loading
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const verifyEmail = async () => {
@@ -23,11 +24,13 @@ export default function VerifyEmailPage() {
           }
         );
 
-        const data = await response.json();
+        // Read JSON once
+        const data = await response.json().catch(() => ({}));
+
         if (!response.ok || !data.success) {
-          throw new Error(
-            data.message || data.data?.message || "Verification failed"
-          );
+          const errorMessage =
+            data.message || `Server Error: ${response.status}`;
+          throw new Error(errorMessage);
         }
 
         toast.success("Email verified successfully! Redirecting...");
@@ -45,6 +48,7 @@ export default function VerifyEmailPage() {
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-50 p-4">
+      <ToastContainer position="top-right" autoClose={5000} theme="colored" />
       <motion.div
         initial={{ opacity: 0, y: 50 }}
         animate={{ opacity: 1, y: 0 }}

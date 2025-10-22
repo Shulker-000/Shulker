@@ -24,13 +24,13 @@ import {
 import { toast } from "react-toastify";
 import PasswordUpdateModal from "../components/PasswordUpdateModal";
 
-// Helper function to create a cropped image from a data URL and a cropped area
+// Helper function to create a cropped image from a data URL
 const createImage = (url) =>
   new Promise((resolve, reject) => {
     const image = new Image();
     image.addEventListener("load", () => resolve(image));
     image.addEventListener("error", (error) => reject(error));
-    image.setAttribute("crossOrigin", "anonymous"); // needed to avoid cross-origin issues
+    image.setAttribute("crossOrigin", "anonymous");
     image.src = url;
   });
 
@@ -71,7 +71,8 @@ export default function ProfilePage() {
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
   const [isAvatarViewOpen, setIsAvatarViewOpen] = useState(false);
-  const [isAvatarUpdating, setIsAvatarUpdating] = useState(false); // New state for avatar loading
+  const [isAvatarUpdating, setIsAvatarUpdating] = useState(false);
+
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -83,7 +84,7 @@ export default function ProfilePage() {
   const [bioCharCount, setBioCharCount] = useState(0);
   const [currentTime, setCurrentTime] = useState(new Date());
 
-  // State for Cropper
+  // Cropper state
   const [imageSrc, setImageSrc] = useState(null);
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
@@ -91,6 +92,7 @@ export default function ProfilePage() {
 
   const fileInputRef = useRef(null);
 
+  // Fetch user profile
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -102,9 +104,17 @@ export default function ProfilePage() {
             credentials: "include",
           }
         );
+
+        if (!res.ok) {
+          const errorData = await res.json().catch(() => ({}));
+          const errorMessage =
+            errorData.message || `Server Error: Status ${res.status}`;
+          throw new Error(errorMessage);
+        }
+
         const response = await res.json();
-        if (!res.ok) throw new Error(response || "Failed to fetch user");
         const userData = response?.data;
+
         dispatch(updateUserProfile(userData));
 
         setFormData({
@@ -115,21 +125,21 @@ export default function ProfilePage() {
             ? new Date(userData.dob).toISOString().split("T")[0]
             : "",
         });
+
         setBioCharCount(userData.bio ? userData.bio.length : 0);
         setLoading(false);
       } catch (error) {
         console.error("Error fetching user:", error);
-        toast.error("Unable to load profile.");
+        toast.error(error.message || "Unable to load profile.");
         setLoading(false);
       }
     };
     fetchUser();
   }, [dispatch]);
 
+  // Update time every minute
   useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 60000);
+    const timer = setInterval(() => setCurrentTime(new Date()), 60000);
     return () => clearInterval(timer);
   }, []);
 
@@ -140,6 +150,7 @@ export default function ProfilePage() {
     return "Good Evening";
   };
 
+  // Logout
   const handleLogout = async () => {
     try {
       const backendUrl = import.meta.env.VITE_BACKEND_URL;
@@ -147,14 +158,15 @@ export default function ProfilePage() {
 
       const response = await fetch(logoutUrl, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         credentials: "include",
       });
 
       if (!response.ok) {
-        throw new Error("Logout failed on the server.");
+        const errorData = await response.json().catch(() => ({}));
+        const errorMessage =
+          errorData.message || "An error occurred during logout.";
+        throw new Error(errorMessage);
       }
 
       dispatch(logout());
@@ -162,7 +174,7 @@ export default function ProfilePage() {
       navigate("/");
     } catch (error) {
       console.error("Logout error:", error);
-      toast.error("An error occurred during logout.");
+      toast.error(error.message || "An error occurred during logout.");
     }
   };
 
@@ -207,53 +219,48 @@ export default function ProfilePage() {
         imageSrc,
         croppedAreaPixels
       );
-      // Immediately call the dedicated update function
       handleAvatarUpdate(croppedImageBlob);
-      setImageSrc(null); // Close the cropping modal
+      setImageSrc(null);
     } catch (e) {
       console.error(e);
       toast.error("Failed to crop image.");
     }
   }, [imageSrc, croppedAreaPixels]);
 
-  // New, separate function for avatar update
+  // Update avatar
   const handleAvatarUpdate = async (file) => {
-    setIsAvatarUpdating(true); // Start loading
+    setIsAvatarUpdating(true);
     try {
-      if (!file) {
-        return;
-      }
+      if (!file) return;
 
       const avatarFormData = new FormData();
       avatarFormData.append("avatar", file, "avatar.jpeg");
 
       const avatarResponse = await fetch(
         `${import.meta.env.VITE_BACKEND_URL}/api/v1/users/update-avatar`,
-        {
-          method: "POST",
-          body: avatarFormData,
-          credentials: "include",
-        }
+        { method: "POST", body: avatarFormData, credentials: "include" }
       );
 
-      const avatarData = await avatarResponse.json();
       if (!avatarResponse.ok) {
-        throw new Error(avatarData.message || "Failed to update avatar.");
+        const errorData = await avatarResponse.json().catch(() => ({}));
+        const errorMessage =
+          errorData.message || `Server Error: Status ${avatarResponse.status}`;
+        throw new Error(errorMessage);
       }
 
-      // Update Redux state with the new permanent avatar URL
+      const avatarData = await avatarResponse.json();
       dispatch(updateUserProfile(avatarData.data));
-      setAvatarFile(null); // Clear temporary local state
+      setAvatarFile(null);
       toast.success("Avatar updated successfully!");
     } catch (error) {
       console.error("Error updating avatar:", error);
       toast.error(error.message || "Failed to update avatar.");
     } finally {
-      setIsAvatarUpdating(false); // End loading
+      setIsAvatarUpdating(false);
     }
   };
 
-  // Main function for saving profile details (now only handles profile data)
+  // Update profile
   const handleUpdate = async () => {
     try {
       const profileUpdates = {
@@ -273,14 +280,14 @@ export default function ProfilePage() {
         }
       );
 
-      const profileData = await profileResponse.json();
       if (!profileResponse.ok) {
-        throw new Error(
-          profileData.message || "Failed to update profile details."
-        );
+        const errorData = await profileResponse.json().catch(() => ({}));
+        const errorMessage =
+          errorData.message || `Server Error: Status ${profileResponse.status}`;
+        throw new Error(errorMessage);
       }
 
-      // Update Redux state with the new profile data
+      const profileData = await profileResponse.json();
       dispatch(updateUserProfile(profileData.data));
       toast.success("Profile details updated successfully!");
       setIsEditing(false);
@@ -290,11 +297,13 @@ export default function ProfilePage() {
     }
   };
 
+  // Send verification email
   const handleSendVerificationEmail = async () => {
     setIsVerifying(true);
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL
+        `${
+          import.meta.env.VITE_BACKEND_URL
         }/api/v1/users/send-email-verification`,
         {
           method: "POST",
@@ -303,11 +312,14 @@ export default function ProfilePage() {
         }
       );
 
-      const data = await response.json();
       if (!response.ok) {
-        throw new Error(data.message || "Failed to send verification email");
+        const errorData = await response.json().catch(() => ({}));
+        const errorMessage =
+          errorData.message || `Server Error: Status ${response.status}`;
+        throw new Error(errorMessage);
       }
 
+      await response.json();
       toast.success("Verification email sent! Please check your inbox.");
     } catch (error) {
       console.error("Error sending verification email:", error);
@@ -318,6 +330,7 @@ export default function ProfilePage() {
   };
 
   if (!user && !loading) return <Navigate to="/" />;
+
   if (loading)
     return (
       <div className="flex justify-center items-center min-h-screen bg-gray-50 text-gray-800">
@@ -327,7 +340,7 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen w-[90vw] md:w-[80vw] mx-auto p-4 sm:p-6 font-sans antialiased text-gray-800">
-      {/* Top Bar with Greeting, Time, and Action Buttons */}
+      {/* Top Bar */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
@@ -342,9 +355,9 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* Profile Header with Avatar and Name */}
+      {/* Profile Header */}
       <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6 mb-8 pt-8">
-        {/* Avatar Section */}
+        {/* Avatar */}
         <div
           onClick={() => setIsAvatarViewOpen(true)}
           className="relative w-24 h-24 rounded-full overflow-hidden shrink-0 cursor-pointer group"
@@ -354,12 +367,13 @@ export default function ProfilePage() {
               user?.avatar && user.avatar.trim() !== ""
                 ? user.avatar
                 : `https://ui-avatars.com/api/?name=${encodeURIComponent(
-                  user?.username || "User"
-                )}&background=3b82f6&color=fff&size=200`
+                    user?.username || "User"
+                  )}&background=3b82f6&color=fff&size=200`
             }
             alt="Profile Avatar"
-            className={`w-full h-full object-cover transition-opacity duration-300 ${isAvatarUpdating ? "opacity-50 blur-sm" : ""
-              }`}
+            className={`w-full h-full object-cover transition-opacity duration-300 ${
+              isAvatarUpdating ? "opacity-50 blur-sm" : ""
+            }`}
           />
           {isAvatarUpdating && (
             <div className="absolute inset-0 flex items-center justify-center">
@@ -370,6 +384,7 @@ export default function ProfilePage() {
             <Camera className="text-white w-6 h-6" />
           </div>
         </div>
+
         <div className="text-center sm:text-left">
           <h2 className="text-2xl font-bold text-gray-900">{user?.username}</h2>
           <p className="text-gray-500">{user?.email}</p>
@@ -378,6 +393,7 @@ export default function ProfilePage() {
 
       {/* Edit Profile Section */}
       <div className="p-6 sm:p-8 rounded-xl shadow-inner border border-gray-200">
+        {/* Header */}
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-bold text-gray-900">Edit Profile</h2>
           <div className="flex gap-2">
@@ -391,21 +407,24 @@ export default function ProfilePage() {
             )}
             <button
               onClick={() => setIsEditing(!isEditing)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors duration-300 shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${isEditing ? "hidden" : ""
-                }`}
+              className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors duration-300 shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
+                isEditing ? "hidden" : ""
+              }`}
             >
               <Edit size={16} /> Edit
             </button>
             <button
               onClick={() => setIsEditing(false)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors duration-300 shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${isEditing ? "" : "hidden"
-                }`}
+              className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors duration-300 shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
+                isEditing ? "" : "hidden"
+              }`}
             >
               <X size={16} /> Cancel
             </button>
           </div>
         </div>
 
+        {/* Form Fields */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* First Name */}
           <div className="space-y-1">
@@ -471,7 +490,7 @@ export default function ProfilePage() {
             )}
           </div>
 
-          {/* Bio Section */}
+          {/* Bio */}
           <div className="space-y-1 col-span-1">
             <label className="text-sm font-medium text-gray-700">Bio</label>
             {isEditing ? (
@@ -483,7 +502,7 @@ export default function ProfilePage() {
                 rows="3"
                 maxLength={250}
                 className="w-full px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-              ></textarea>
+              />
             ) : (
               <p className="w-full px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-900">
                 {user?.bio || "Not set"}
@@ -501,7 +520,7 @@ export default function ProfilePage() {
       {/* Email Section */}
       <div className="mt-8 pt-6 border-t border-gray-200">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Email Address */}
+          {/* Email */}
           <div className="space-y-1">
             <label className="text-sm font-medium text-gray-700">
               Email Address
@@ -512,7 +531,7 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          {/* Email Verification Status */}
+          {/* Email Verification */}
           <div className="space-y-1">
             <label className="text-sm font-medium text-gray-700">
               Email Verification Status
@@ -547,15 +566,15 @@ export default function ProfilePage() {
       </div>
 
       {/* Bottom Buttons */}
-
       <div className="mt-8 flex flex-col sm:flex-row gap-3 w-1/2 ml-auto justify-end">
         <button
           onClick={() => setIsPasswordModalOpen(true)}
           disabled={!!user.googleId}
-          className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium shadow-md focus:outline-none transition-all duration-300 w-full sm:w-auto justify-center ${!!user.googleId
-            ? "hidden"
-            : "text-white bg-blue-600 hover:bg-blue-700 focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-50 focus:ring-blue-500"
-            }`}
+          className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium shadow-md focus:outline-none transition-all duration-300 w-full sm:w-auto justify-center ${
+            !!user.googleId
+              ? "hidden"
+              : "text-white bg-blue-600 hover:bg-blue-700 focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-50 focus:ring-blue-500"
+          }`}
         >
           <KeyRound size={16} /> Change Password
         </button>
@@ -589,8 +608,8 @@ export default function ProfilePage() {
                   avatarFile
                     ? URL.createObjectURL(avatarFile)
                     : user?.avatar && user.avatar.trim() !== ""
-                      ? user.avatar
-                      : `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                    ? user.avatar
+                    : `https://ui-avatars.com/api/?name=${encodeURIComponent(
                         user?.username || "User"
                       )}&background=3b82f6&color=fff&size=200`
                 }
@@ -607,7 +626,7 @@ export default function ProfilePage() {
                 <button
                   onClick={() => {
                     fileInputRef.current.click();
-                    setIsAvatarViewOpen(false); // Close the modal before opening file picker
+                    setIsAvatarViewOpen(false);
                   }}
                   className="px-6 py-2 rounded-full text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors duration-300"
                 >
@@ -627,6 +646,7 @@ export default function ProfilePage() {
         accept=".jpg, .jpeg, .png, .webp"
       />
 
+      {/* Cropper Modal */}
       {imageSrc && (
         <AnimatePresence>
           <motion.div
@@ -645,7 +665,7 @@ export default function ProfilePage() {
                   onCropChange={setCrop}
                   onZoomChange={setZoom}
                   onCropComplete={onCropComplete}
-                  cropShape="round" // This prop makes the crop grid circular
+                  cropShape="round"
                 />
               </div>
               <div className="controls mt-auto pt-4 flex flex-col items-center">
@@ -656,21 +676,19 @@ export default function ProfilePage() {
                   max={3}
                   step={0.1}
                   aria-labelledby="Zoom"
-                  onChange={(e) => {
-                    setZoom(e.target.value);
-                  }}
+                  onChange={(e) => setZoom(e.target.value)}
                   className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer range-lg dark:bg-gray-700"
                 />
                 <div className="flex gap-4 mt-4 w-full justify-center">
                   <button
                     onClick={() => setImageSrc(null)}
-                    className="flex items-center gap-2 px-6 py-2 rounded-full text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors duration-300"
+                    className="px-6 py-2 rounded-full text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors duration-300"
                   >
                     <X size={16} /> Cancel
                   </button>
                   <button
-                    onClick={() => onCropSave()} // Call the new save logic
-                    className="flex items-center gap-2 px-6 py-2 rounded-full text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors duration-300"
+                    onClick={() => onCropSave()}
+                    className="px-6 py-2 rounded-full text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors duration-300"
                   >
                     <Crop size={16} /> Crop & Save
                   </button>
@@ -692,4 +710,3 @@ export default function ProfilePage() {
     </div>
   );
 }
-0

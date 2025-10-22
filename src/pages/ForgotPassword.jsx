@@ -37,22 +37,32 @@ const ForgotPassword = () => {
 
     setIsLoading(true);
     try {
-      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/v1/users/forgot-password`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      });
-      const data = await res.json();
+      const res = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/v1/users/forgot-password`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email }),
+        }
+      ); // --- FIX: Proper Error Handling Check ---
 
       if (!res.ok) {
-        toast.error(data.message || "Failed to send reset link.");
-      } else {
-        toast.success("A reset link has been sent.");
-        setTimeout(() => navigate("/"), 3000);
-      }
+        // Safely parse the JSON body to get the specific message from ApiError
+        const errorData = await res.json().catch(() => ({}));
+        const errorMessage =
+          errorData.message || `Server Error: Status ${res.status}`;
+
+        console.error("Forgot Password Backend Error:", errorMessage);
+        toast.error(errorMessage);
+        setError(errorMessage); // Display error below the input field
+        return; // Stop execution on failure
+      } // --- End FIX --- // Success case
+      toast.success("A reset link has been sent.");
+      setTimeout(() => navigate("/"), 3000);
     } catch (err) {
-      console.error("Forgot Password Error:", err);
+      console.error("Forgot Password Network Error:", err);
       toast.error("A network error occurred. Please try again.");
+      setError("Network error. Please check your connection.");
     } finally {
       setIsLoading(false);
     }
@@ -60,13 +70,16 @@ const ForgotPassword = () => {
 
   const formVariants = {
     hidden: { opacity: 0, y: 30 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.5, ease: "easeOut" },
+    },
   };
 
   return (
     // This container enforces the full viewport height and creates the split-screen layout.
     <div className="flex w-full h-[92vh] font-sans">
-      
       {/* --- Form Section (Right Side) --- */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8 sm:p-12 bg-white">
         <motion.div
@@ -80,13 +93,17 @@ const ForgotPassword = () => {
               Forgot Password?
             </h1>
             <p className="mt-3 text-gray-600">
-              No worries, it happens. Enter your email and we'll send you a reset link.
+              No worries, it happens. Enter your email and we'll send you a
+              reset link.
             </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5" noValidate>
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Email Address
               </label>
               <div className="mt-1 relative">
@@ -107,9 +124,7 @@ const ForgotPassword = () => {
                   placeholder="you@example.com"
                 />
               </div>
-              {error && (
-                <p className="mt-1.5 text-xs text-red-600">{error}</p>
-              )}
+              {error && <p className="mt-1.5 text-xs text-red-600">{error}</p>}
             </div>
 
             <div className="pt-2">
@@ -125,7 +140,10 @@ const ForgotPassword = () => {
           </form>
 
           <div className="pt-8 text-center">
-            <Link to="/login" className="inline-flex items-center gap-1.5 text-sm font-medium text-indigo-600 hover:text-indigo-500 transition-colors">
+            <Link
+              to="/login"
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-indigo-600 hover:text-indigo-500 transition-colors"
+            >
               <ArrowLeft className="w-4 h-4" />
               Back to login
             </Link>
@@ -147,7 +165,6 @@ const ForgotPassword = () => {
           />
         </motion.div>
       </div>
-
     </div>
   );
 };

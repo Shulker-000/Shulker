@@ -175,47 +175,46 @@ const RegisterPage = () => {
     setIsLoading(true);
 
     try {
-  const res = await fetch(`${backend_url}/api/v1/users/register`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      username: formData.username,
-      email: formData.email,
-      password: formData.password,
-    }),
-  });
+      const res = await fetch(`${backend_url}/api/v1/users/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          username: formData.username,
+          email: formData.email,
+          password: formData.password,
+        }),
+      });
 
-  // Parse only once
-  const responseData = await res.json().catch(() => null);
+      // --- PROPER ERROR HANDLING CHECK ---
+      if (!res.ok) {
+        // Safely parse the JSON body to get the specific message from ApiError
+        const errorData = await res.json().catch(() => ({}));
+        const errorMessage =
+          errorData.message ||
+          `Registration failed. Server Error: Status ${res.status}.`;
 
-  if (res.ok) {
-    toast.success(
-      responseData?.message || "Registration successful! Redirecting..."
-    );
-    setTimeout(() => {
-      navigate("/login");
-    }, 2000);
-  } else {
-    const errorMessage = responseData?.message;
-    if (res.status === 409) {
-      toast.error(
-        errorMessage || "An account with this username or email already exists."
+        // Throw the specific message to the catch block for unified error reporting
+        throw new Error(errorMessage);
+      }
+      // --- End PROPER ERROR HANDLING CHECK ---
+
+      // Success Logic
+      const responseData = await res.json();
+      toast.success(
+        responseData?.message || "Registration successful! Redirecting..."
       );
-    } else if (res.status === 400) {
-      toast.error(errorMessage || "Please check your input and try again.");
-    } else {
-      toast.error(errorMessage || "Registration failed. Please try again later.");
+      setTimeout(() => {
+        navigate("/login");
+      }, 2000);
+    } catch (error) {
+      // This catch handles network errors AND the specific API error thrown above
+      console.error("Registration error:", error);
+      toast.error(
+        error.message || "A network error occurred. Please try again."
+      );
+    } finally {
+      setIsLoading(false);
     }
-  }
-} catch (error) {
-  console.error("Registration network error:", error);
-  toast.error(
-    "A network error occurred. Please check your connection and try again."
-  );
-} finally {
-  setIsLoading(false);
-}
-
   };
 
   const openModal = (type) => {
@@ -601,12 +600,12 @@ const RegisterPage = () => {
                   className="pt-4 text-center text-sm text-gray-600"
                 >
                   Already have an account?{" "}
-                  <a
-                    href="/login"
+                  <Link
+                    to="/login"
                     className="font-medium text-indigo-600 hover:underline"
                   >
                     Sign in here
-                  </a>
+                  </Link>
                 </motion.p>
                 <motion.p
                   variants={itemVariants}

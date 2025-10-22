@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
-import { useStreamVideoClient } from '@stream-io/video-react-sdk';
-import { useSelector } from 'react-redux';
+import { useEffect, useState } from "react";
+import { useStreamVideoClient } from "@stream-io/video-react-sdk";
+import { useSelector } from "react-redux";
 
 export const useGetCallById = (id) => {
   const [call, setCall] = useState(null);
@@ -16,7 +16,7 @@ export const useGetCallById = (id) => {
       return;
     }
 
-    let isMounted = true; 
+    let isMounted = true;
 
     const loadCall = async () => {
       setIsCallLoading(true);
@@ -31,7 +31,7 @@ export const useGetCallById = (id) => {
           setCall(calls.length > 0 ? calls[0] : null);
         }
       } catch (err) {
-        console.error('Error fetching call:', err);
+        console.error("Error fetching call:", err);
         if (isMounted) setError(err);
       } finally {
         if (isMounted) setIsCallLoading(false);

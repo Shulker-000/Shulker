@@ -17,7 +17,7 @@ const authSlice = createSlice({
     logout: (state) => {
       state.user = null;
       state.token = null;
-      state.streamToken = null; 
+      state.streamToken = null;
       localStorage.removeItem("authToken");
       localStorage.removeItem("authUser");
       localStorage.removeItem("refreshToken");
@@ -32,6 +32,7 @@ const authSlice = createSlice({
   },
 });
 
-export const { login, logout, updateUserProfile, setStreamToken } = authSlice.actions;
+export const { login, logout, updateUserProfile, setStreamToken } =
+  authSlice.actions;
 
 export default authSlice.reducer;
