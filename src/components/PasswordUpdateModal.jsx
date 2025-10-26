@@ -39,8 +39,10 @@ const PasswordUpdateModal = ({ isVisible, onClose }) => {
     }
 
     setLoading(true);
+    let response; // Declare response outside try/catch for scope
+
     try {
-      const response = await fetch(
+      response = await fetch(
         `${import.meta.env.VITE_BACKEND_URL}/api/v1/users/change-password`,
         {
           method: "POST",
@@ -50,18 +52,25 @@ const PasswordUpdateModal = ({ isVisible, onClose }) => {
         }
       );
 
-      const data = await response.json();
-
       if (!response.ok) {
-        throw new Error(data.message || "Failed to update password.");
-      }
+        // Safely parse the JSON error body from the backend (ApiError contract)
+        const errorData = await response.json().catch(() => ({})); // Extract the specific message or use a fallback
+        const errorMessage =
+          errorData.message || `Server Error: Status ${response.status}`;
 
+        console.error("Backend Error:", errorMessage);
+        toast.error(errorMessage);
+        setError(errorMessage);
+        return; // Stop execution on failure
+      } // --- END PROPER ERROR HANDLING CHECK --- // If execution reaches here, the request was successful (2xx)
       toast.success("Password updated successfully!");
       onClose();
     } catch (err) {
-      console.error("Error updating password:", err);
-      toast.error(err.message || "Failed to update password.");
-      setError(err.message || "Failed to update password.");
+      // This block handles network errors (e.g., fetch failed entirely)
+      console.error("Network or Unexpected Error:", err);
+      const displayMessage = `Network Error: ${err.message}`;
+      toast.error(displayMessage);
+      setError(displayMessage);
     } finally {
       setLoading(false);
     }
