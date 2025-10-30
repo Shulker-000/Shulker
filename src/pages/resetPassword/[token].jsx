@@ -56,6 +56,7 @@ const ResetPassword = () => {
 
     try {
       const response = await fetch(
+        // Ensure you have VITE_BACKEND_URL in your .env file
         `${
           import.meta.env.VITE_BACKEND_URL
         }/api/v1/users/reset-password/${token}`,
@@ -66,14 +67,14 @@ const ResetPassword = () => {
         }
       );
 
-      if (!response.ok) {
-        // Safely attempt to parse the JSON error body
-        const errorData = await response.json().catch(() => ({}));
-        const errorMessage =
-          errorData.message || `Server Error: Status ${response.status}`; // Throw the proper error message to the catch block
+      const data = await response.json();
 
-        throw new Error(errorMessage); // This throw is essential
-      } // --- End Proper Error Handling Check --- // Success logic
+      if (!response.ok) {
+        throw new Error(
+          data.message || "Failed to reset password. The link may have expired."
+        );
+      }
+
       toast.success("Password reset successful! Redirecting to login...");
       setTimeout(() => {
         navigate("/login");
