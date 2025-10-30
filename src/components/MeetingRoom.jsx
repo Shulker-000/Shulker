@@ -49,7 +49,9 @@ const MeetingRoom = () => {
   const [chatClient, setChatClient] = useState(null);
   const [channel, setChannel] = useState(null);
 
-  const { useCallCallingState } = useCallStateHooks();
+  const {
+    useCallCallingState,
+  } = useCallStateHooks();
 
   const call = useCall();
 
@@ -61,9 +63,7 @@ const MeetingRoom = () => {
   }, [user, navigate]);
 
   if (!call) {
-    throw new Error(
-      "useStreamCall must be used within a StreamCall component."
-    );
+    throw new Error("useStreamCall must be used within a StreamCall component.");
   }
 
   useEffect(() => {
@@ -80,6 +80,7 @@ const MeetingRoom = () => {
 
     async function setupChat() {
       try {
+
         if (client.userID) {
           await client.disconnectUser();
         }
@@ -99,7 +100,7 @@ const MeetingRoom = () => {
         const meetingChannel = client.channel("messaging", channelId, {
           name: "Meeting Room Chat",
         });
-        await meetingChannel.watch();
+        await meetingChannel.watch(); 
 
         if (isMounted) {
           setChannel(meetingChannel);
@@ -116,7 +117,7 @@ const MeetingRoom = () => {
     return () => {
       isMounted = false;
       if (client) {
-        client.disconnectUser().catch(() => {});
+        client.disconnectUser().catch(() => { });
       }
       setChatClient(null);
       setChannel(null);
@@ -145,7 +146,7 @@ const MeetingRoom = () => {
   const copyLink = () => {
     if (call) {
       // Assuming the link to join the meeting uses the call.id
-      const meetingLink = `${window.location.origin}/meetings/${call.id}`;
+      const meetingLink = `${window.location.origin}/meetings/${call.id}`; 
       navigator.clipboard.writeText(meetingLink);
       toast.success("Meeting link copied!");
       setCopied(true);
@@ -154,53 +155,35 @@ const MeetingRoom = () => {
   };
 
   const leaveCall = async () => {
-    let response;
     try {
-      if (!user?._id) {
-        console.error("User ID missing, cannot leave call.");
-        toast.error("User ID is missing. Please log in again.");
-        return;
-      }
-
       const backendUrl = import.meta.env.VITE_BACKEND_URL;
-      if (!backendUrl) {
-        console.error("Missing backend URL");
-        toast.error("Configuration error: Missing backend URL.");
-        return;
-      }
 
-      response = await fetch(`${backendUrl}/api/v1/meetings/leave`, {
+      const response = await fetch(`${backendUrl}/api/v1/meetings/leave`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ meetingId: call.id, userId: user._id }),
+        body: JSON.stringify({
+          meetingId: call.id,
+          userId: user._id,
+        }),
         credentials: "include",
       });
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        const errorMessage =
-          errorData.message || `Server error: ${response.status}`;
-        console.error("Backend Error:", errorMessage);
-        toast.error(errorMessage);
+      if (response.status === 403) {
+        toast.error("You are the host. End the meeting to leave!");
         return;
       }
 
       const data = await response.json();
 
-      // Skip call.leave() if the backend indicates the user already left or is the creator
-      const member = data.data.members.find(
-        (m) => m.user.toString() === user._id
-      );
-      if (!member || member.leftAt || call.state.callingState === "LEFT") {
-      } else {
-        await call.leave();
-        toast.success("You have left the meeting successfully.");
+      if (data) {
+        if (!call.state?.hasLeft) {
+          await call.leave();
+        }
       }
     } catch (err) {
-      console.error("Error leaving call:", err);
-      toast.error(`Network Error: ${err.message}`);
+      console.error("Error ending call:", err);
     } finally {
-      if (response?.ok) navigate("/");
+      navigate("/");
     }
   };
 
