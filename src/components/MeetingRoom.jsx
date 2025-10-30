@@ -157,7 +157,6 @@ const MeetingRoom = () => {
 
   const leaveCall = async () => {
     try {
-      const backendUrl = import.meta.env.VITE_BACKEND_URL;
       if (!user?._id) {
         toast.error("User ID missing. Please log in again.");
         return;

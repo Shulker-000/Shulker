@@ -3,6 +3,8 @@ import { useSelector, useDispatch } from "react-redux";
 import { StreamVideoClient, StreamVideo } from "@stream-io/video-react-sdk";
 import Loader from "../components/Loader.jsx";
 import { setStreamToken } from "../features/authSlice.js";
+import { useNavigate } from "react-router-dom";
+import Dashboard from "../pages/Dashboard.jsx";
 
 const API_KEY = import.meta.env.VITE_STREAM_API_KEY;
 
@@ -38,13 +40,14 @@ const StreamVideoProvider = ({ children }) => {
   const [videoClient, setVideoClient] = useState(null);
   const [loading, setLoading] = useState(true);
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { user } = useSelector((state) => state.auth);
   const isLoggedIn = !!user?._id;
 
   useEffect(() => {
     if (!isLoggedIn || !user?._id) {
       if (videoClient) {
-        videoClient.disconnectUser();
+        videoClient.disconnectUser().catch(() => {});
         setVideoClient(null);
       }
       setLoading(false);
@@ -79,12 +82,18 @@ const StreamVideoProvider = ({ children }) => {
     if (!videoClient) {
       createClient();
     }
+  }, [user?._id, isLoggedIn]);
 
-    // Standard cleanup: only rely on the login/logout logic above.
-    return () => {};
-  }, [user?._id, isLoggedIn, dispatch]); // Dependency on user ID and logged in status.
+  // 3️⃣ Redirect if no client after loading
+  useEffect(() => {
+    if (!videoClient && !loading && isLoggedIn) {
+      navigate("/");
+    }
+  }, [videoClient, loading, isLoggedIn, navigate]);
 
-  if (loading || !videoClient) return <Loader />;
+  // 4️⃣ Render logic (hooks are all above)
+  if (loading) return <Loader />;
+  if (!videoClient) return <Dashboard />;
 
   return (
     <StreamContext.Provider value={videoClient}>
