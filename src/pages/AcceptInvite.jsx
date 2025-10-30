@@ -42,10 +42,8 @@ const AcceptInvite = () => {
         );
 
         if (!response.ok) {
-          const errorData = await response.json().catch(() => ({})); // Use the safe data to extract the message
-          throw new Error(
-            errorData.message || `Server Error: Status ${response.status}`
-          );
+          const errorData = await response.json();
+          throw new Error(errorData.message || "Failed to accept invitation");
         }
 
         toast({ title: "Invitation accepted! Joining meeting..." });

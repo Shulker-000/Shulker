@@ -22,7 +22,7 @@ import "react-datepicker/dist/react-datepicker.css";
 const initialValues = {
   dateTime: new Date(),
   description: "",
-  participants: "", // New field for participants
+  participants: "", // ADDED: New field for participants
   link: "",
 };
 
@@ -38,7 +38,7 @@ const Dashboard = () => {
   const [meetings, setMeetings] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(false); // Loading state for button
+  const [loading, setLoading] = useState(false); // ADDED: Loading state for button
 
   useEffect(() => {
     const fetchMeetings = async () => {
@@ -47,7 +47,6 @@ const Dashboard = () => {
         setError("User is not authenticated. Please log in.");
         return;
       }
-
       try {
         const backendUrl = import.meta.env.VITE_BACKEND_URL;
         const response = await fetch(
@@ -60,14 +59,12 @@ const Dashboard = () => {
             credentials: "include",
           }
         );
-
         if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          const errorMessage =
-            errorData.message || `Server Error: Status ${response.status}`;
-          throw new Error(errorMessage);
+          const errorData = await response.json();
+          throw new Error(
+            errorData.message || "Failed to fetch meetings."
+          );
         }
-
         const res = await response.json();
         setMeetings(res.data || []);
       } catch (err) {
@@ -76,7 +73,6 @@ const Dashboard = () => {
         setIsLoading(false);
       }
     };
-
     fetchMeetings();
   }, [user]);
 
@@ -85,21 +81,16 @@ const Dashboard = () => {
       toast({ title: "Stream client not ready. Please try again." });
       return;
     }
-
-    setLoading(true);
-
+    setLoading(true); // Set loading to true
     try {
+      // Logic for Instant Meeting
       if (meetingState === "isInstantMeeting") {
-        // Instant Meeting Logic
         const id = uuidv4();
         const call = client.call("default", id);
 
         if (!call) throw new Error("Failed to create call object.");
-
-        const startsAt =
-          values.dateTime.toISOString() || new Date().toISOString();
+        const startsAt = values.dateTime.toISOString() || new Date().toISOString();
         const description = values.description || "Instant Meeting";
-
         await call.getOrCreate({
           data: {
             starts_at: startsAt,
@@ -117,7 +108,7 @@ const Dashboard = () => {
             body: JSON.stringify({
               meetingId: id,
               scheduledTime: new Date().toISOString(),
-              participants: [],
+              participants: [], // No participants for instant meeting
               title: "Instant Meeting",
             }),
             credentials: "include",
@@ -125,17 +116,14 @@ const Dashboard = () => {
         );
 
         if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          const errorMessage =
-            errorData.message || `Server Error: Status ${response.status}`;
-          throw new Error(errorMessage);
+          throw new Error("Failed to create meeting on backend");
         }
 
         setCallDetail(call);
         navigate(`/meetings/${id}`);
         toast({ title: "Instant Meeting Created" });
       } else if (meetingState === "isScheduleMeeting") {
-        // Scheduled Meeting Logic
+        // Logic for Scheduled Meeting
         if (!values.dateTime || !values.participants) {
           toast({ title: "Please fill in all required fields" });
           setLoading(false);
@@ -156,7 +144,6 @@ const Dashboard = () => {
         const participantEmails = values.participants
           .split(",")
           .map((e) => e.trim());
-
         const response = await fetch(
           `${import.meta.env.VITE_BACKEND_URL}/api/v1/meetings/schedule`,
           {
@@ -175,26 +162,30 @@ const Dashboard = () => {
         );
 
         if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          const errorMessage =
-            errorData.message || `Server Error: Status ${response.status}`;
-          throw new Error(errorMessage);
+          const errorData = await response.json();
+          console.error("Backend error:", errorData);
+          throw new Error("Failed to schedule meeting on backend");
         }
 
+        // Handle success
         setCallDetail(call);
-        setMeetingState("isScheduledSuccess");
+        setMeetingState("isScheduledSuccess"); // New state to show success modal
         toast({ title: "Meeting Scheduled" });
       }
     } catch (error) {
       console.error("An error occurred:", error);
-      toast({ title: error.message || "Failed to create Meeting" });
+      toast({ title: "Failed to create Meeting" });
     } finally {
-      setLoading(false);
+      setLoading(false); // Reset loading state
     }
   };
 
-  const upcomingMeetings = meetings.filter((m) => m.status === "scheduled");
-  const currentMeetings = meetings.filter((m) => m.status === "ongoing");
+  const upcomingMeetings = meetings.filter(
+    (m) => m.status == 'scheduled'
+  );
+  const currentMeetings = meetings.filter(
+    (m) => m.status == 'ongoing'
+  );
 
   const renderModal = () => {
     switch (meetingState) {
@@ -318,25 +309,9 @@ const Dashboard = () => {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
-          <svg
-            className="animate-spin h-10 w-10 text-gray-400 mx-auto"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-          >
-            <circle
-              className="opacity-25"
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="currentColor"
-              strokeWidth="4"
-            ></circle>
-            <path
-              className="opacity-75"
-              fill="currentColor"
-              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-            ></path>
+          <svg className="animate-spin h-10 w-10 text-gray-400 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
           </svg>
           <p className="mt-4 text-gray-600">Loading meetings...</p>
         </div>
@@ -349,10 +324,7 @@ const Dashboard = () => {
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center p-8 bg-white rounded-2xl shadow-lg">
           <p className="text-red-500 font-semibold">Error: {error}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
+          <button onClick={() => window.location.reload()} className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
             Retry
           </button>
         </div>
@@ -367,74 +339,45 @@ const Dashboard = () => {
         <div className="lg:col-span-2 xl:col-span-3 space-y-6">
           {/* Quick Actions */}
           <section className="bg-white p-6 rounded-3xl shadow-lg">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">
-              Quick Actions
-            </h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Quick Actions</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <button
-                onClick={() => setMeetingState("isInstantMeeting")}
-                className="flex flex-col items-start p-6 bg-purple-100 text-purple-800 rounded-2xl transition-transform transform hover:scale-105 hover:bg-purple-200"
-              >
+              <button onClick={() => setMeetingState("isInstantMeeting")} className="flex flex-col items-start p-6 bg-purple-100 text-purple-800 rounded-2xl transition-transform transform hover:scale-105 hover:bg-purple-200">
                 <Video className="w-8 h-8 mb-2" />
                 <span className="font-semibold text-lg">Start Meeting</span>
-                <span className="text-sm text-purple-600">
-                  Begin instantly.
-                </span>
+                <span className="text-sm text-purple-600">Begin instantly.</span>
               </button>
-              <button
-                onClick={() => setMeetingState("isScheduleMeeting")}
-                className="flex flex-col items-start p-6 bg-blue-100 text-blue-800 rounded-2xl transition-transform transform hover:scale-105 hover:bg-blue-200"
-              >
+              <button onClick={() => setMeetingState("isScheduleMeeting")} className="flex flex-col items-start p-6 bg-blue-100 text-blue-800 rounded-2xl transition-transform transform hover:scale-105 hover:bg-blue-200">
                 <Calendar className="w-8 h-8 mb-2" />
                 <span className="font-semibold text-lg">Schedule</span>
                 <span className="text-sm text-blue-600">Plan for later.</span>
               </button>
-              <button
-                onClick={() => navigate("/past-meetings")}
-                className="flex flex-col items-start p-6 bg-green-100 text-green-800 rounded-2xl transition-transform transform hover:scale-105 hover:bg-green-200"
-              >
+              <button onClick={() => navigate("/past-meetings")} className="flex flex-col items-start p-6 bg-green-100 text-green-800 rounded-2xl transition-transform transform hover:scale-105 hover:bg-green-200">
                 <FileText className="w-8 h-8 mb-2" />
                 <span className="font-semibold text-lg">Past Meetings</span>
-                <span className="text-sm text-green-600">
-                  Review previous calls.
-                </span>
+                <span className="text-sm text-green-600">Review previous calls.</span>
               </button>
-              <button
-                onClick={() => setMeetingState("isJoiningMeeting")}
-                className="flex flex-col items-start p-6 bg-yellow-100 text-yellow-800 rounded-2xl transition-transform transform hover:scale-105 hover:bg-yellow-200"
-              >
+              <button onClick={() => setMeetingState("isJoiningMeeting")} className="flex flex-col items-start p-6 bg-yellow-100 text-yellow-800 rounded-2xl transition-transform transform hover:scale-105 hover:bg-yellow-200">
                 <Link2 className="w-8 h-8 mb-2" />
                 <span className="font-semibold text-lg">Join Meeting</span>
-                <span className="text-sm text-yellow-600">
-                  Enter a link to join.
-                </span>
+                <span className="text-sm text-yellow-600">Enter a link to join.</span>
               </button>
             </div>
           </section>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <section className="bg-white p-6 rounded-3xl shadow-lg">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                Upcoming Meetings
-              </h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">Upcoming Meetings</h2>
               <ul className="space-y-4">
                 {upcomingMeetings.length > 0 ? (
                   upcomingMeetings.map((meeting) => (
-                    <li
-                      key={meeting._id}
-                      className="p-4 rounded-2xl bg-gray-50 flex justify-between items-center"
-                    >
+                    <li key={meeting._id} className="p-4 rounded-2xl bg-gray-50 flex justify-between items-center">
                       <div>
-                        <div className="text-lg font-semibold">
-                          {meeting.title || "Meeting"}
-                        </div>
+                        <div className="text-lg font-semibold">{meeting.title || "Meeting"}</div>
                         <div className="text-sm text-gray-500">
                           {new Date(meeting.scheduledTime).toLocaleString()}
                         </div>
                       </div>
                       <button
-                        onClick={() =>
-                          navigate(`/meetings/${meeting.meetingId}`)
-                        }
+                        onClick={() => navigate(`/meetings/${meeting.meetingId}`)}
                         className="px-4 py-2 bg-purple-600 text-white rounded-full hover:bg-purple-700 transition-colors"
                       >
                         Join
@@ -448,28 +391,19 @@ const Dashboard = () => {
             </section>
             {/* Current Meetings */}
             <section className="bg-white p-6 rounded-3xl shadow-lg">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                Current Meetings
-              </h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">Current Meetings</h2>
               <ul className="space-y-4">
                 {currentMeetings.length > 0 ? (
                   currentMeetings.map((meeting) => (
-                    <li
-                      key={meeting._id}
-                      className="p-4 rounded-2xl bg-gray-50 flex justify-between items-center"
-                    >
+                    <li key={meeting._id} className="p-4 rounded-2xl bg-gray-50 flex justify-between items-center">
                       <div>
-                        <div className="text-lg font-semibold">
-                          {meeting.title || "Meeting"}
-                        </div>
+                        <div className="text-lg font-semibold">{meeting.title || "Meeting"}</div>
                         <div className="text-sm text-gray-500">
                           {new Date(meeting.scheduledTime).toLocaleString()}
                         </div>
                       </div>
                       <button
-                        onClick={() =>
-                          navigate(`/meetings/${meeting.meetingId}`)
-                        }
+                        onClick={() => navigate(`/meetings/${meeting.meetingId}`)}
                         className="px-4 py-2 bg-purple-600 text-white rounded-full hover:bg-purple-700 transition-colors"
                       >
                         Join
@@ -477,9 +411,7 @@ const Dashboard = () => {
                     </li>
                   ))
                 ) : (
-                  <p className="text-gray-500">
-                    No ongoing meetings right now.
-                  </p>
+                  <p className="text-gray-500">No ongoing meetings right now.</p>
                 )}
               </ul>
             </section>
@@ -499,7 +431,9 @@ const Dashboard = () => {
               </div>
               <div className="p-4 rounded-2xl bg-red-50 flex flex-col items-center justify-center text-center">
                 <Timer className="w-8 h-8 text-red-500" />
-                <h3 className="text-xl font-bold mt-2">2h 15m</h3>
+                <h3 className="text-xl font-bold mt-2">
+                  2h 15m
+                </h3>
                 <p className="text-sm text-gray-500">Talk Time</p>
               </div>
             </div>

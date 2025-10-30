@@ -25,21 +25,13 @@ const tokenProvider = async (userId, dispatch) => {
     }
   );
 
-  // ✅ FIX: Parse JSON only once
-  const data = await response.json().catch(() => ({}));
-
-  if (!response.ok) {
-    const errorMessage =
-      data.message || `Server Error: Status ${response.status}`;
-    throw new Error(errorMessage);
+  const res = await response.json();
+  if (res?.data?.token) {
+    dispatch(setStreamToken(res.data.token));
+    return res.data.token;
+  } else {
+    throw new Error("Stream token not received from backend.");
   }
-
-  if (data?.data?.token) {
-    dispatch(setStreamToken(data.data.token));
-    return data.data.token;
-  }
-
-  throw new Error("Stream token not received in backend response.");
 };
 
 const StreamVideoProvider = ({ children }) => {
@@ -50,17 +42,24 @@ const StreamVideoProvider = ({ children }) => {
   const isLoggedIn = !!user?._id;
 
   useEffect(() => {
-    let client;
+    if (!isLoggedIn || !user?._id) {
+      if (videoClient) {
+        videoClient.disconnectUser();
+        setVideoClient(null);
+      }
+      setLoading(false);
+      return;
+    }
+
+    if (!API_KEY) {
+      console.error("Stream API key is missing");
+      setLoading(false);
+      return;
+    }
 
     const createClient = async () => {
       try {
-        if (!API_KEY) {
-          console.error("Stream API key is missing");
-          setLoading(false);
-          return;
-        }
-
-        client = StreamVideoClient.getOrCreateInstance({
+        const client = StreamVideoClient.getOrCreateInstance({
           apiKey: API_KEY,
           user: {
             id: user._id,
@@ -77,12 +76,8 @@ const StreamVideoProvider = ({ children }) => {
       }
     };
 
-    if (isLoggedIn && user?._id) {
+    if (!videoClient) {
       createClient();
-    } else if (videoClient) {
-      videoClient.disconnectUser();
-      setVideoClient(null);
-      setLoading(false);
     }
 
     // Standard cleanup: only rely on the login/logout logic above.

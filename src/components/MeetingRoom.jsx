@@ -51,7 +51,10 @@ const MeetingRoom = () => {
   const [chatClient, setChatClient] = useState(null);
   const [channel, setChannel] = useState(null);
 
-  const { useCallCallingState } = useCallStateHooks();
+  const {
+    useCallCallingState,
+  } = useCallStateHooks();
+
   const call = useCall();
 
   useEffect(() => {
@@ -62,9 +65,7 @@ const MeetingRoom = () => {
   }, [user, navigate]);
 
   if (!call) {
-    throw new Error(
-      "useStreamCall must be used within a StreamCall component."
-    );
+    throw new Error("useStreamCall must be used within a StreamCall component.");
   }
 
   useEffect(() => {
@@ -81,6 +82,7 @@ const MeetingRoom = () => {
 
     async function setupChat() {
       try {
+
         if (client.userID) {
           await client.disconnectUser();
         }
@@ -100,7 +102,7 @@ const MeetingRoom = () => {
         const meetingChannel = client.channel("messaging", channelId, {
           name: "Meeting Room Chat",
         });
-        await meetingChannel.watch();
+        await meetingChannel.watch(); 
 
         if (isMounted) {
           setChannel(meetingChannel);
@@ -116,7 +118,9 @@ const MeetingRoom = () => {
 
     return () => {
       isMounted = false;
-      if (client) client.disconnectUser().catch(() => {});
+      if (client) {
+        client.disconnectUser().catch(() => { });
+      }
       setChatClient(null);
       setChannel(null);
     };
@@ -142,7 +146,8 @@ const MeetingRoom = () => {
 
   const copyLink = () => {
     if (call) {
-      const meetingLink = `${window.location.origin}/meetings/${call.id}`;
+      // Assuming the link to join the meeting uses the call.id
+      const meetingLink = `${window.location.origin}/meetings/${call.id}`; 
       navigator.clipboard.writeText(meetingLink);
       toast.success("Meeting link copied!");
       setCopied(true);
@@ -151,8 +156,8 @@ const MeetingRoom = () => {
   };
 
   const leaveCall = async () => {
-    let response;
     try {
+      const backendUrl = import.meta.env.VITE_BACKEND_URL;
       if (!user?._id) {
         toast.error("User ID missing. Please log in again.");
         return;
@@ -164,32 +169,32 @@ const MeetingRoom = () => {
         return;
       }
 
-      response = await fetch(`${backendUrl}/api/v1/meetings/leave`, {
+      const response = await fetch(`${backendUrl}/api/v1/meetings/leave`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ meetingId: call.id, userId: user._id }),
+        body: JSON.stringify({
+          meetingId: call.id,
+          userId: user._id,
+        }),
         credentials: "include",
       });
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        toast.error(errorData.message || `Server error: ${response.status}`);
+      if (response.status === 403) {
+        toast.error("You are the host. End the meeting to leave!");
         return;
       }
 
       const data = await response.json();
-      const member = data.data.members.find(
-        (m) => m.user.toString() === user._id
-      );
-      if (!member || member.leftAt || call.state.callingState === "LEFT") {
-      } else {
-        await call.leave();
-        toast.success("You have left the meeting successfully.");
+
+      if (data) {
+        if (!call.state?.hasLeft) {
+          await call.leave();
+        }
       }
     } catch (err) {
-      toast.error(`Network Error: ${err.message}`);
+      console.error("Error ending call:", err);
     } finally {
-      if (response?.ok) navigate("/");
+      navigate("/");
     }
   };
 
