@@ -49,14 +49,12 @@ const Dashboard = () => {
       }
       try {
         const backendUrl = import.meta.env.VITE_BACKEND_URL;
-        const token = localStorage.getItem("authToken");
         const response = await fetch(
           `${backendUrl}/api/v1/meetings/user/${user._id}`,
           {
             method: "GET",
             headers: {
               "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
             },
             credentials: "include",
           }
@@ -80,7 +78,7 @@ const Dashboard = () => {
 
   const createMeeting = async () => {
     if (!client || !user) {
-      alert("Missing client or user, cannot create meeting.");
+      toast({ title: "Stream client not ready. Please try again." });
       return;
     }
     setLoading(true); // Set loading to true
@@ -100,15 +98,12 @@ const Dashboard = () => {
           },
         });
 
-        // Backend call to save the meeting
-        const token = localStorage.getItem("authToken");
         const response = await fetch(
           `${import.meta.env.VITE_BACKEND_URL}/api/v1/meetings/create`,
           {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
             },
             body: JSON.stringify({
               meetingId: id,
@@ -116,6 +111,7 @@ const Dashboard = () => {
               participants: [], // No participants for instant meeting
               title: "Instant Meeting",
             }),
+            credentials: "include",
           }
         );
 
@@ -145,7 +141,6 @@ const Dashboard = () => {
           },
         });
 
-        const token = localStorage.getItem("authToken");
         const participantEmails = values.participants
           .split(",")
           .map((e) => e.trim());
@@ -155,7 +150,6 @@ const Dashboard = () => {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
             },
             body: JSON.stringify({
               meetingId: id,
@@ -163,6 +157,7 @@ const Dashboard = () => {
               participants: participantEmails,
               title: values.description || "Scheduled Meeting",
             }),
+            credentials: "include",
           }
         );
 

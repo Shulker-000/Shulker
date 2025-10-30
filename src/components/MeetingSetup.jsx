@@ -53,6 +53,13 @@ const MeetingSetup = ({ setIsSetupComplete }) => {
       }
     );
     return response;
+    
+  // Copy meeting ID
+  const copyMeetingId = () => {
+    navigator.clipboard.writeText(call.id);
+    setCopied(true);
+    toast.success("Meeting ID copied");
+    setTimeout(() => setCopied(false), 2000);
   };
 
   return (

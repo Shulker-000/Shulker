@@ -50,7 +50,6 @@ const AuthProvider = ({ children }) => {
 
     if (user) {
       const fetchUser = async () => {
-        console.log("Fetching current user data...");
         try {
           const res = await fetch(
             `${import.meta.env.VITE_BACKEND_URL}/api/v1/users/current-user`,

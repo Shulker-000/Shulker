@@ -19,9 +19,9 @@ const tokenProvider = async (userId, dispatch) => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({ userId }),
+      credentials: "include",
     }
   );
 
@@ -38,8 +38,8 @@ const StreamVideoProvider = ({ children }) => {
   const [videoClient, setVideoClient] = useState(null);
   const [loading, setLoading] = useState(true);
   const dispatch = useDispatch();
-  const { user, token } = useSelector((state) => state.auth);
-  const isLoggedIn = !!user && !!token;
+  const { user } = useSelector((state) => state.auth);
+  const isLoggedIn = !!user?._id;
 
   useEffect(() => {
     if (!isLoggedIn || !user?._id) {
@@ -79,7 +79,10 @@ const StreamVideoProvider = ({ children }) => {
     if (!videoClient) {
       createClient();
     }
-  }, [user, token, isLoggedIn]);
+
+    // Standard cleanup: only rely on the login/logout logic above.
+    return () => {};
+  }, [user?._id, isLoggedIn, dispatch]); // Dependency on user ID and logged in status.
 
   if (loading || !videoClient) return <Loader />;
 
