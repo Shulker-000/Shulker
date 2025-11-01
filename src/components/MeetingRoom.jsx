@@ -20,6 +20,7 @@ import {
   MessageCircle,
   SquarePen,
   Image as ImageIcon,
+  Subtitles,
 } from "lucide-react";
 import { StreamChat } from "stream-chat";
 import { toast } from "react-toastify";
@@ -37,6 +38,8 @@ import { cn } from "../lib/utils";
 import "../index.css";
 import { useSelector } from "react-redux";
 import BackgroundFilters from "./BackgroundFilters.jsx";
+import MeetingCaptions from "./MeetingCaptions.jsx";
+import Recordings from "./Recordings.jsx";
 
 const MeetingRoom = () => {
   const navigate = useNavigate();
@@ -50,12 +53,20 @@ const MeetingRoom = () => {
   const [copied, setCopied] = useState(false);
   const [chatClient, setChatClient] = useState(null);
   const [channel, setChannel] = useState(null);
+  const [showCaptions, setShowCaptions] = useState(false);
 
-  const {
-    useCallCallingState,
-  } = useCallStateHooks();
+  const { useCallCallingState } = useCallStateHooks();
 
   const call = useCall();
+
+  const { useCameraState } = useCallStateHooks();
+  const cameraState = useCameraState();
+  const isCameraOn = cameraState?.status === "enabled";
+
+  const isMeetingOwner =
+    call?.state?.createdBy?.id &&
+    user?._id &&
+    call.state.createdBy.id === user._id;
 
   useEffect(() => {
     if (user && !user.isEmailVerified) {
@@ -65,7 +76,9 @@ const MeetingRoom = () => {
   }, [user, navigate]);
 
   if (!call) {
-    throw new Error("useStreamCall must be used within a StreamCall component.");
+    throw new Error(
+      "useStreamCall must be used within a StreamCall component."
+    );
   }
 
   useEffect(() => {
@@ -157,7 +170,6 @@ const MeetingRoom = () => {
 
   const leaveCall = async () => {
     try {
-      const backendUrl = import.meta.env.VITE_BACKEND_URL;
       if (!user?._id) {
         toast.error("User ID missing. Please log in again.");
         return;
@@ -238,12 +250,23 @@ const MeetingRoom = () => {
                 <div
                   className={user._id === call.state.createdBy.id ? "host" : ""}
                 >
-                  <CallControls
-                    onLeave={leaveCall}
-                    controls={["microphone", "camera", "leave-call"]}
-                  />
+                  <CallControls onLeave={leaveCall} />
+                  <Recordings />
                 </div>
               </div>
+
+              <button
+                // onClick={() => setShowCaptions((prev) => !prev)}
+                // className={cn(
+                //   "rounded-full p-3 transition-colors",
+                //   showCaptions
+                //     ? "bg-blue-600 hover:bg-blue-700 text-white"
+                //     : "bg-gray-200 hover:bg-gray-300 text-gray-800"
+                // )}
+                title="Toggle Captions"
+              >
+                <Subtitles size={20} />
+              </button>
 
               <div className="flex items-center gap-4">
                 <a
@@ -286,18 +309,20 @@ const MeetingRoom = () => {
                 </DropdownMenu>
 
                 {/* Toggle Background Filters */}
-                <button
-                  onClick={() => setShowBackgroundSelector((prev) => !prev)}
-                  className={cn(
-                    "rounded-full p-3 transition-colors",
-                    showBackgroundSelector
-                      ? "bg-blue-600 hover:bg-blue-700 text-white"
-                      : "bg-gray-200 hover:bg-gray-300 text-gray-800"
-                  )}
-                  title="Change Background Effects"
-                >
-                  <ImageIcon size={20} />
-                </button>
+                {isCameraOn && (
+                  <button
+                    onClick={() => setShowBackgroundSelector((prev) => !prev)}
+                    className={cn(
+                      "rounded-full p-3 transition-colors",
+                      showBackgroundSelector
+                        ? "bg-blue-600 hover:bg-blue-700 text-white"
+                        : "bg-gray-200 hover:bg-gray-300 text-gray-800"
+                    )}
+                    title="Change Background Effects"
+                  >
+                    <ImageIcon size={20} />
+                  </button>
+                )}
 
                 {/* Participants Toggle */}
                 <button
