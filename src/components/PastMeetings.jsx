@@ -173,21 +173,27 @@ const PastMeetings = () => {
       setIsSummaryModalOpen(true);
       setSelectedSummary("Loading summary...");
 
-      const response = await fetch(`${backendUrl}/api/v1/summary/meeting/${meetingId}`, {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-      });
+      const response = await fetch(
+        `${backendUrl}/api/v1/summary/meeting/${meetingId}`,
+        {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+        }
+      );
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         const message =
-          errorData.message || `Failed to fetch summary (status ${response.status})`;
+          errorData.message ||
+          `Failed to fetch summary (status ${response.status})`;
         throw new Error(message);
       }
 
       const data = await response.json();
-      setSelectedSummary(data?.data?.summary || "No summary found for this meeting.");
+      setSelectedSummary(
+        data?.data?.summary || "No summary found for this meeting."
+      );
     } catch (err) {
       console.error("Error fetching summary:", err);
       setSelectedSummary("Failed to load summary. Please try again.");
@@ -274,13 +280,12 @@ const PastMeetings = () => {
         <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
           {pastMeetings.length > 0 ? (
             pastMeetings.map((meeting) => {
-              // TODO: You can render the cards based on these recordings URL 
-              {console.log("Meeting Recordings :", meeting.recordingUrl);}
               const { formattedDate, formattedStart, formattedEnd } =
                 formatMeetingTitle(meeting.scheduledTime, meeting.endedAt);
               return (
                 <div
                   key={meeting._id}
+                  onClick={() => navigate(`/past-meetings/${meeting._id}`)} // ✅ route to MeetingDetails
                   className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300 cursor-pointer flex flex-col justify-between"
                 >
                   <div>

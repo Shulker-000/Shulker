@@ -31,6 +31,7 @@ import { StreamCall, StreamTheme } from "@stream-io/video-react-sdk";
 import AuthProvider from "./providers/AuthProvider.jsx";
 import PastMeetings from "./components/PastMeetings.jsx";
 import AcceptInvite from "./pages/AcceptInvite.jsx";
+import PastMeetingCard from "./components/PastMeetingCard.jsx";
 
 const lightTheme = {
   colors: {
@@ -97,6 +98,7 @@ const AppWrapper = () => {
         <Route path="/verify-email/:token" element={<VerifyEmailPage />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/accept-invite/:meetingId" element={<AcceptInvite />} />
+        <Route path="/past-meetings/:meetingId" element={<PastMeetingCard />} />
         <Route
           path="/dashboard/*"
           element={
