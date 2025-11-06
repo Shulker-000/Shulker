@@ -38,7 +38,7 @@ import { cn } from "../lib/utils";
 import "../index.css";
 import { useSelector } from "react-redux";
 import BackgroundFilters from "./BackgroundFilters.jsx";
-import MeetingCaptions from "./MeetingCaptions.jsx";
+// import MeetingCaptions from "./MeetingCaptions.jsx";
 import Recordings from "./Recordings.jsx";
 
 const MeetingRoom = () => {

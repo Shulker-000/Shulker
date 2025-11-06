@@ -55,10 +55,7 @@ const AttendeesModal = ({ isOpen, onClose, attendees }) => {
 const SummaryModal = ({ isOpen, onClose, summary }) => {
   if (!isOpen) return null;
 
-  const copySummaryToClipboard = () => {
-    navigator.clipboard.writeText(summary);
-    alert("Summary copied to clipboard!");
-  };
+  const isLoading = summary === "Loading summary...";
 
   return (
     <div
@@ -80,15 +77,24 @@ const SummaryModal = ({ isOpen, onClose, summary }) => {
             <XCircle size={24} />
           </button>
         </div>
-        <p className="text-gray-700 mb-4">
-          {summary || "This is a dummy AI summary."}
-        </p>
-        <button
-          onClick={copySummaryToClipboard}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-        >
-          Copy Summary
-        </button>
+
+        {isLoading ? (
+          <p className="text-gray-500">Fetching AI summary...</p>
+        ) : (
+          <p className="text-gray-700 mb-4">{summary}</p>
+        )}
+
+        {!isLoading && (
+          <button
+            onClick={() => {
+              navigator.clipboard.writeText(summary);
+              alert("Summary copied to clipboard!");
+            }}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Copy Summary
+          </button>
+        )}
       </div>
     </div>
   );
@@ -161,9 +167,31 @@ const PastMeetings = () => {
     setSelectedAttendees([]);
   };
 
-  const handleSummaryClick = (summary) => {
-    setSelectedSummary(summary || "This is a dummy AI summary.");
-    setIsSummaryModalOpen(true);
+  const handleSummaryClick = async (meetingId) => {
+    try {
+      const backendUrl = import.meta.env.VITE_BACKEND_URL;
+      setIsSummaryModalOpen(true);
+      setSelectedSummary("Loading summary...");
+
+      const response = await fetch(`${backendUrl}/api/v1/summary/meeting/${meetingId}`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        const message =
+          errorData.message || `Failed to fetch summary (status ${response.status})`;
+        throw new Error(message);
+      }
+
+      const data = await response.json();
+      setSelectedSummary(data?.data?.summary || "No summary found for this meeting.");
+    } catch (err) {
+      console.error("Error fetching summary:", err);
+      setSelectedSummary("Failed to load summary. Please try again.");
+    }
   };
 
   const handleSummaryModalClose = () => {
@@ -246,6 +274,8 @@ const PastMeetings = () => {
         <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
           {pastMeetings.length > 0 ? (
             pastMeetings.map((meeting) => {
+              // TODO: You can render the cards based on these recordings URL 
+              {console.log("Meeting Recordings :", meeting.recordingUrl);}
               const { formattedDate, formattedStart, formattedEnd } =
                 formatMeetingTitle(meeting.scheduledTime, meeting.endedAt);
               return (
@@ -268,7 +298,7 @@ const PastMeetings = () => {
                     </div>
                     <div
                       className="flex items-center space-x-2 text-purple-600 mb-3 cursor-pointer"
-                      onClick={() => handleSummaryClick(meeting.summary)}
+                      onClick={() => handleSummaryClick(meeting._id)}
                     >
                       <Sparkles className="w-5 h-5" />
                       <span className="font-semibold">AI Summary</span>

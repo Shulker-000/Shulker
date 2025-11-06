@@ -6,7 +6,7 @@ import {
 import { toast } from "react-toastify";
 import { X, Image as ImageIcon, Droplet } from "lucide-react";
 import Beach from "./../assets/images/bg/beach.png";
-import ClassRoom from "./../assets/images/bg/classRoom.png";
+import ClassRoom from "./../assets/images/bg/classroom.png";
 import Library from "./../assets/images/bg/library.png";
 import LivingRoom from "./../assets/images/bg/livingRoom.png";
 import Mountain from "./../assets/images/bg/mountain.png";
