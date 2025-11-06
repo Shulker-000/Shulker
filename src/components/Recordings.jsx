@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import { useCall, useCallStateHooks } from "@stream-io/video-react-sdk";
 import { toast } from "react-toastify";
 
-const Recordings = () => {
+const Recordings = ({ setEnableEnd }) => {
   const call = useCall();
   const { useIsCallRecordingInProgress } = useCallStateHooks();
   const isRecording = useIsCallRecordingInProgress();
@@ -15,13 +15,12 @@ const Recordings = () => {
     if (!call) return;
     const backendUrl = import.meta.env.VITE_BACKEND_URL;
     if (!backendUrl) {
-      console.error("❌ Missing VITE_BACKEND_URL in env");
+      toast.error("Missing VITE_BACKEND_URL in env");
       return;
     }
 
     const waitForNewRecording = async () => {
       for (let i = 0; i < 12; i++) {
-        // up to ~60s
         const response = await call.queryRecordings();
         const recordings = response.recordings || [];
 
@@ -38,7 +37,6 @@ const Recordings = () => {
 
         // Only proceed if it's newer than last uploaded
         if (!lastUploadedTime.current || latestEnd > lastUploadedTime.current) {
-          console.log("🆕 New finalized recording found:", latest);
           return latest;
         }
 
@@ -76,23 +74,21 @@ const Recordings = () => {
 
         lastUploadedTime.current = endTimestamp;
         toast.success("Recording uploaded successfully!");
-        console.log("✅ Uploaded recording:", data);
       } catch (err) {
-        console.error("❌ Upload failed:", err);
-        toast.error("Failed to upload recording");
+        toast.error("❌ Upload failed:", err);
       } finally {
+        setEnableEnd(true);
         isUploading.current = false;
       }
     };
 
     const handleRecordingStopped = async () => {
-      console.log("🎬 Recording stopped → waiting for finalized file...");
       const latest = await waitForNewRecording();
       if (latest) await uploadRecording(latest);
     };
 
     if (!previousRecordingState.current && isRecording) {
-      console.log("🔴 Recording started → reset state");
+      setEnableEnd(false);
       isUploading.current = false;
     }
 
@@ -101,7 +97,7 @@ const Recordings = () => {
     }
 
     previousRecordingState.current = isRecording;
-  }, [isRecording, call]);
+  }, [isRecording, call, setEnableEnd]);
 
   return null;
 };
