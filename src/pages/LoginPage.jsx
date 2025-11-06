@@ -322,7 +322,7 @@ const Login = () => {
             >
               Don't have an account?{" "}
               <Link
-                to="/register"
+                to="/signup"
                 className="font-medium text-indigo-600 hover:underline"
               >
                 Sign up here

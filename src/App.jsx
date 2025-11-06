@@ -8,30 +8,33 @@ import {
 } from "react-router-dom";
 import "@stream-io/video-react-sdk/dist/css/styles.css";
 import "./custom-stream.css";
-import AboutPage from "./pages/AboutPage";
-import LandingPage from "./pages/LandingPage";
-import LoginPage from "./pages/LoginPage";
-import RegisterPage from "./pages/RegisterPage";
-import WhiteBoard from "./components/WhiteBoard";
-import Navbar from "./components/Navbar";
-import Footer from "./components/Footer";
-import Contact from "./pages/Contact";
-import NotFoundPage from "./pages/NotFoundPage";
-import ForgotPassword from "./pages/ForgotPassword";
-import ResetPassword from "./pages/resetPassword/[token].jsx";
-import Dashboard from "./pages/Dashboard.jsx";
-import AuthSuccess from "./pages/AuthSuccess.jsx";
-import ProfilePage from "./pages/ProfilePage.jsx";
-import VerifyEmailPage from "./pages/VerifyEmailPage.jsx";
 
 import { useSelector } from "react-redux";
-import StreamVideoProvider from "./providers/StreamVideoProvider.jsx";
-import MeetingPage from "./pages/MeetingPage.jsx";
 import { StreamCall, StreamTheme } from "@stream-io/video-react-sdk";
-import AuthProvider from "./providers/AuthProvider.jsx";
+
+import Navbar from "./components/Navbar";
+import Footer from "./components/Footer";
+import WhiteBoard from "./components/WhiteBoard";
 import PastMeetings from "./components/PastMeetings.jsx";
-import AcceptInvite from "./pages/AcceptInvite.jsx";
 import PastMeetingCard from "./components/PastMeetingCard.jsx";
+
+import StreamVideoProvider from "./providers/StreamVideoProvider.jsx";
+import AuthProvider from "./providers/AuthProvider.jsx";
+
+import LandingPage from "./pages/LandingPage";
+import AboutPage from "./pages/AboutPage";
+import Contact from "./pages/Contact";
+import LoginPage from "./pages/LoginPage";
+import RegisterPage from "./pages/RegisterPage";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/resetPassword/[token].jsx";
+import AuthSuccess from "./pages/AuthSuccess.jsx";
+import Dashboard from "./pages/Dashboard.jsx";
+import ProfilePage from "./pages/ProfilePage.jsx";
+import VerifyEmailPage from "./pages/VerifyEmailPage.jsx";
+import AcceptInvite from "./pages/AcceptInvite.jsx";
+import MeetingPage from "./pages/MeetingPage.jsx";
+import NotFoundPage from "./pages/NotFoundPage.jsx";
 
 const lightTheme = {
   colors: {
@@ -51,24 +54,53 @@ const AppWrapper = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const user = useSelector((state) => state.auth.user);
-  useEffect(() => {
 
+  useEffect(() => {
+    const pathname = location.pathname;
+
+    // ✅ Explicit public base routes (no auth required)
+    const publicBaseRoutes = [
+      "/",
+      "/login",
+      "/signup",
+      "/forgot-password",
+      "/auth-success",
+      "/contact",
+      "/about",
+    ];
+
+    // ✅ Dynamic public route prefixes
+    const dynamicPublicPrefixes = [
+      "/reset-password",
+      "/verify-email",
+      "/accept-invite",
+    ];
+
+    // Check if current route is public
+    const isPublicRoute =
+      publicBaseRoutes.includes(pathname) ||
+      dynamicPublicPrefixes.some(
+        (prefix) => pathname === prefix || pathname.startsWith(prefix + "/")
+      );
+
+    // Wait for auth to load
+    if (user === undefined) return;
+
+    // Redirect logic based on user state
     if (user) {
-      if (["/", "/login", "/register", "/signup"].includes(location.pathname)) {
+      if (["/", "/login", "/signup"].includes(pathname)) {
         navigate("/dashboard", { replace: true });
       }
-    } else {
-      if (["/dashboard", "/profile"].includes(location.pathname)) {
-        navigate("/login", { replace: true });
-      }
+    } else if (!isPublicRoute) {
+      navigate("/login", { replace: true });
     }
   }, [user, location.pathname, navigate]);
 
+  // Hide Navbar/Footer on these routes
   const hideNavbarFooterRoutes = [
     "whiteboard",
     "login",
     "signup",
-    "register",
     "notfound",
     "verify-email",
     "meetings",
@@ -78,56 +110,53 @@ const AppWrapper = () => {
     location.pathname.split("/")[1]
   );
 
-
   return (
     <>
       {!shouldHideNavbarFooter && <Navbar />}
       <Routes>
+        {/* ✅ Public Routes */}
         <Route path="/" element={<LandingPage />} />
         <Route path="/about" element={<AboutPage />} />
-        <Route path="/landing" element={<LandingPage />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/auth-success" element={<AuthSuccess />} />
-        <Route path="/register" element={<RegisterPage />} />
-        <Route path="/signup" element={<RegisterPage />} />
-        <Route path="/whiteboard" element={<WhiteBoard />} />
         <Route path="/contact" element={<Contact />} />
-        <Route path="/past-meetings" element={<PastMeetings />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/signup" element={<RegisterPage />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
         <Route path="/verify-email/:token" element={<VerifyEmailPage />} />
-        <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/auth-success" element={<AuthSuccess />} />
         <Route path="/accept-invite/:meetingId" element={<AcceptInvite />} />
+
+        {/* ✅ Authenticated Routes */}
+        <Route
+          path="/dashboard"
+          element={
+            <StreamVideoProvider>
+              <Dashboard />
+            </StreamVideoProvider>
+          }
+        />
+        <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/past-meetings" element={<PastMeetings />} />
         <Route path="/past-meetings/:meetingId" element={<PastMeetingCard />} />
+
+        {/* ✅ Stream Video Route */}
         <Route
-          path="/dashboard/*"
+          path="/meetings/:id"
           element={
             <StreamVideoProvider>
-              <Routes>
-                <Route path="/" element={<Dashboard />} />
-              </Routes>
+              <StreamTheme theme={lightTheme}>
+                <StreamCall>
+                  <MeetingPage />
+                </StreamCall>
+              </StreamTheme>
             </StreamVideoProvider>
           }
         />
-        <Route
-          path="/meetings/*"
-          element={
-            <StreamVideoProvider>
-              <Routes>
-                <Route
-                  path="/:id"
-                  element={
-                    <StreamTheme theme={lightTheme}>
-                      <StreamCall>
-                        <MeetingPage />
-                      </StreamCall>
-                    </StreamTheme>
-                  }
-                />
-              </Routes>
-            </StreamVideoProvider>
-          }
-        />
+
+        {/* ✅ Utility / Tool Routes */}
+        <Route path="/whiteboard" element={<WhiteBoard />} />
+
+        {/* ✅ Fallback */}
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
       {!shouldHideNavbarFooter && <Footer />}
