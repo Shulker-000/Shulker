@@ -3,13 +3,15 @@ import { useCall, useCallStateHooks } from "@stream-io/video-react-sdk";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 
-const EndCallButton = ({ meetingId }) => {
+const EndCallButton = ({ meetingId, disabledEndButton }) => {
   const call = useCall();
   const navigate = useNavigate();
   const user = useSelector((state) => state.auth.user);
 
   if (!call) {
-    throw new Error("useStreamCall must be used within a StreamCall component.");
+    throw new Error(
+      "useStreamCall must be used within a StreamCall component."
+    );
   }
 
   const { useLocalParticipant } = useCallStateHooks();
@@ -51,11 +53,21 @@ const EndCallButton = ({ meetingId }) => {
 
   return (
     <button
+      disabled={!disabledEndButton}
       onClick={endCall}
-      className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 
-                 bg-red-600 text-white text-sm sm:text-base 
-                 font-medium rounded-full 
-                 hover:bg-red-700 transition duration-200"
+      title={
+        disabledEndButton
+        ? "End recording for everyone"
+          : "Wait for recording to be processed"
+      }
+      className={`w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 
+              text-white text-sm sm:text-base font-medium rounded-full 
+              transition duration-200
+              ${
+                disabledEndButton
+                ? "bg-red-600 hover:bg-red-700"
+                : "bg-gray-400 cursor-not-allowed"
+              }`}
     >
       End call for everyone
     </button>

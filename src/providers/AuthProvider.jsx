@@ -39,14 +39,26 @@ const AuthProvider = ({ children }) => {
       "/login",
       "/about",
       "/contact",
-      "/register",
+      "/notfound",
       "/signup",
       "/forgot-password",
       "/reset-password",
       "/auth-success",
-      "/verify-email",
     ];
+
+    const dynamicPublicPrefixes = [
+      "/reset-password",
+      "/verify-email",
+      "/accept-invite",
+    ];
+
     const path = window.location.pathname.toLowerCase();
+    // Check if the current path is public or dynamic public
+    const isPublicRoute =
+      publicRoutes.includes(path) ||
+      dynamicPublicPrefixes.some(
+        (prefix) => path === prefix || path.startsWith(prefix + "/")
+      );
 
     if (user) {
       const fetchUser = async () => {
@@ -67,8 +79,15 @@ const AuthProvider = ({ children }) => {
             return;
           }
 
+          if (!res.ok) {
+            const errorData = await res.json().catch(() => ({}));
+            const errorMessage =
+              errorData.message || `Server Error: Status ${res.status}`;
+            throw new Error(errorMessage);
+          }
+
+          // Success logic
           const data = await res.json();
-          if (!res.ok) throw new Error(data.message || "Failed to fetch user");
           dispatch(updateUserProfile(data.data));
 
           setTimeout(() => {
@@ -76,12 +95,12 @@ const AuthProvider = ({ children }) => {
           }, 50);
         } catch (error) {
           console.error("AuthProvider user fetch error:", error);
-          toast.error("Unable to load user data.");
+          toast.error(error.message || "Unable to load user data.");
         }
       };
       fetchUser();
     } else {
-      if (!publicRoutes.includes(path)) {
+      if (!isPublicRoute) {
         navigate("/login", { replace: true });
       }
       setHasFetchedUser(true);
