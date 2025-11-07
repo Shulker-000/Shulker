@@ -3,7 +3,7 @@ import { useCall, useCallStateHooks } from "@stream-io/video-react-sdk";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 
-const EndCallButton = ({ meetingId, disabledEndButton }) => {
+const EndCallButton = ({ meetingId, disabledEndButton, disableFocus }) => {
   const call = useCall();
   const navigate = useNavigate();
   const user = useSelector((state) => state.auth.user);
@@ -47,6 +47,7 @@ const EndCallButton = ({ meetingId, disabledEndButton }) => {
     } catch (err) {
       console.error("Error ending call:", err);
     } finally {
+      await disableFocus();
       navigate("/");
     }
   };
