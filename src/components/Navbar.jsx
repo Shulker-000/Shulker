@@ -354,13 +354,13 @@ const Navbar = () => {
     try {
       const backendUrl = import.meta.env.VITE_BACKEND_URL;
       const logoutUrl = `${backendUrl}/api/v1/users/logout`;
-
+      const token = localStorage.getItem("authToken");
       const response = await fetch(logoutUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-        },
-        credentials: "include",
+              "Authorization": `Bearer ${token}`,
+        }
       });
 
       if (!response.ok) {

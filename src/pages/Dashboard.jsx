@@ -42,6 +42,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     const fetchMeetings = async () => {
+      const token = localStorage.getItem("authToken");
       if (!user || !user._id) {
         setIsLoading(false);
         setError("User is not authenticated. Please log in.");
@@ -55,8 +56,8 @@ const Dashboard = () => {
             method: "GET",
             headers: {
               "Content-Type": "application/json",
-            },
-            credentials: "include",
+              "Authorization": `Bearer ${token}`,
+            }
           }
         );
         if (!response.ok) {
@@ -97,13 +98,14 @@ const Dashboard = () => {
             custom: { description },
           },
         });
-
+        const token = localStorage.getItem("authToken");
         const response = await fetch(
           `${import.meta.env.VITE_BACKEND_URL}/api/v1/meetings/create`,
           {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
+              "Authorization": `Bearer ${token}`,
             },
             body: JSON.stringify({
               meetingId: id,
@@ -111,7 +113,7 @@ const Dashboard = () => {
               participants: [], // No participants for instant meeting
               title: "Instant Meeting",
             }),
-            credentials: "include",
+            
           }
         );
 
@@ -141,6 +143,7 @@ const Dashboard = () => {
           },
         });
 
+        const token = localStorage.getItem("authToken");
         const participantEmails = values.participants
           .split(",")
           .map((e) => e.trim());
@@ -150,6 +153,7 @@ const Dashboard = () => {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`,
             },
             body: JSON.stringify({
               meetingId: id,
@@ -157,7 +161,6 @@ const Dashboard = () => {
               participants: participantEmails,
               title: values.description || "Scheduled Meeting",
             }),
-            credentials: "include",
           }
         );
 

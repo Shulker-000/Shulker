@@ -115,7 +115,7 @@ const MeetingRoom = () => {
         const meetingChannel = client.channel("messaging", channelId, {
           name: "Meeting Room Chat",
         });
-        await meetingChannel.watch(); 
+        await meetingChannel.watch();
 
         if (isMounted) {
           setChannel(meetingChannel);
@@ -160,7 +160,7 @@ const MeetingRoom = () => {
   const copyLink = () => {
     if (call) {
       // Assuming the link to join the meeting uses the call.id
-      const meetingLink = `${window.location.origin}/meetings/${call.id}`; 
+      const meetingLink = `${window.location.origin}/meetings/${call.id}`;
       navigator.clipboard.writeText(meetingLink);
       toast.success("Meeting link copied!");
       setCopied(true);
@@ -180,15 +180,15 @@ const MeetingRoom = () => {
         toast.error("Configuration error: Missing backend URL.");
         return;
       }
-
+      const token = localStorage.getItem("authToken");
       const response = await fetch(`${backendUrl}/api/v1/meetings/leave`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
         body: JSON.stringify({
           meetingId: call.id,
           userId: user._id,
-        }),
-        credentials: "include",
+        })
+
       });
 
       if (response.status === 403) {

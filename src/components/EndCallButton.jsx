@@ -30,11 +30,11 @@ const EndCallButton = ({ meetingId }) => {
       }
 
       const backendUrl = import.meta.env.VITE_BACKEND_URL;
+      const token = localStorage.getItem("authToken");
       const response = await fetch(`${backendUrl}/api/v1/meetings/end`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
         body: JSON.stringify({ meetingId, userId: user._id }),
-        credentials: "include",
       });
 
       if (!response.ok) {

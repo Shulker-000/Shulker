@@ -50,13 +50,16 @@ const AuthProvider = ({ children }) => {
 
     if (user) {
       const fetchUser = async () => {
+        const token = localStorage.getItem("authToken");
         try {
           const res = await fetch(
             `${import.meta.env.VITE_BACKEND_URL}/api/v1/users/current-user`,
             {
               method: "GET",
-              headers: { "Content-Type": "application/json" },
-              credentials: "include",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              }
             }
           );
 

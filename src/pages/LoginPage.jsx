@@ -53,7 +53,7 @@ const Login = () => {
       newErrors.password = "Password is required.";
     }
     return newErrors;
-  }; 
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -65,18 +65,21 @@ const Login = () => {
     }
     setErrors({});
     setIsLoading(true);
-
+    const token = localStorage.getItem("authToken");
     try {
       const res = await fetch(
         `${import.meta.env.VITE_BACKEND_URL}/api/v1/users/login`,
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
           body: JSON.stringify({
             email: formData.email,
             password: formData.password,
           }),
-          credentials: "include",
+
         }
       );
 
@@ -203,11 +206,10 @@ const Login = () => {
                     value={formData.email}
                     onChange={handleInputChange}
                     onBlur={handleBlur}
-                    className={`block w-full pl-10 pr-3 py-2.5 border rounded-lg shadow-sm focus:outline-none focus:ring-2 ${
-                      errors.email
-                      ? "border-red-500 focus:ring-red-500"
-                      : "border-gray-300 focus:ring-indigo-500"
-                    }`}
+                    className={`block w-full pl-10 pr-3 py-2.5 border rounded-lg shadow-sm focus:outline-none focus:ring-2 ${errors.email
+                        ? "border-red-500 focus:ring-red-500"
+                        : "border-gray-300 focus:ring-indigo-500"
+                      }`}
                     placeholder="your-email@email.com"
                   />
                 </div>
@@ -236,8 +238,8 @@ const Login = () => {
                     onChange={handleInputChange}
                     onBlur={handleBlur}
                     className={`block w-full pl-10 pr-10 py-2.5 border rounded-lg shadow-sm focus:outline-none focus:ring-2 ${errors.password
-                        ? "border-red-500 focus:ring-red-500"
-                        : "border-gray-300 focus:ring-indigo-500"
+                      ? "border-red-500 focus:ring-red-500"
+                      : "border-gray-300 focus:ring-indigo-500"
                       }`}
                     placeholder="Enter your password"
                   />

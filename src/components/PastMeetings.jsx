@@ -122,12 +122,13 @@ const PastMeetings = () => {
       setIsLoading(true);
       try {
         const backendUrl = import.meta.env.VITE_BACKEND_URL;
+        const token = localStorage.getItem("authToken");
         const response = await fetch(
           `${backendUrl}/api/v1/meetings/user/${user._id}`,
           {
             method: "GET",
-            headers: { "Content-Type": "application/json" },
-            credentials: "include",
+            headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+
           }
         );
 
@@ -166,17 +167,16 @@ const PastMeetings = () => {
     setIsModalOpen(false);
     setSelectedAttendees([]);
   };
-
   const handleSummaryClick = async (meetingId) => {
     try {
       const backendUrl = import.meta.env.VITE_BACKEND_URL;
+      const token = localStorage.getItem("authToken");
       setIsSummaryModalOpen(true);
       setSelectedSummary("Loading summary...");
 
       const response = await fetch(`${backendUrl}/api/v1/summary/meeting/${meetingId}`, {
         method: "GET",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
       });
 
       if (!response.ok) {
@@ -275,7 +275,7 @@ const PastMeetings = () => {
           {pastMeetings.length > 0 ? (
             pastMeetings.map((meeting) => {
               // TODO: You can render the cards based on these recordings URL 
-              {console.log("Meeting Recordings :", meeting.recordingUrl);}
+              { console.log("Meeting Recordings :", meeting.recordingUrl); }
               const { formattedDate, formattedStart, formattedEnd } =
                 formatMeetingTitle(meeting.scheduledTime, meeting.endedAt);
               return (
