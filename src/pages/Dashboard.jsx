@@ -9,6 +9,7 @@ import {
   FileText,
   Timer,
   Link2,
+  UserPlus,
 } from "lucide-react";
 import { useStreamVideoClient } from "@stream-io/video-react-sdk";
 import { v4 as uuidv4 } from "uuid";
@@ -24,6 +25,7 @@ const initialValues = {
   description: "",
   participants: "", // ADDED: New field for participants
   link: "",
+   meetingId: "",
 };
 
 const Dashboard = () => {
@@ -300,6 +302,69 @@ const Dashboard = () => {
             />
           </MeetingModal>
         );
+      case "isAddParticipants":
+        return (
+          <MeetingModal
+            isOpen={true}
+            onClose={() => setMeetingState(undefined)}
+            title="Add Participants"
+            handleClick={async () => {
+              const participantEmails = values.participants
+                .split(",")
+                .map((e) => e.trim());
+              if (participantEmails.length === 0 || !values.meetingId) {
+                toast({ title: "Enter at least one valid email." });
+                return;
+              }
+
+              try {
+                const res = await fetch(
+                  `${
+                    import.meta.env.VITE_BACKEND_URL
+                  }/api/v1/meetings/add-participants`,
+                  {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                      meetingId: values.meetingId,
+                      participants: participantEmails,
+                    }),
+                    credentials: "include",
+                  }
+                );
+
+                const data = await res.json();
+                if (!res.ok)
+                  throw new Error(data.message || "Failed to add participants");
+
+                toast({ title: "Participants invited successfully" });
+                setMeetingState(undefined);
+                setValues(initialValues);
+              } catch (err) {
+                toast({ title: err.message || "Error adding participants" });
+              }
+            }}
+            buttonText="Send Invites"
+          >
+            <div className="flex flex-col gap-2.5 mt-4">
+              <label className="text-base font-normal leading-[22.4px] text-sky-2">
+                Add Participants (comma-separated emails)
+              </label>
+              <Input
+                type="text"
+                placeholder="e.g., user1@email.com, user2@email.com"
+                onChange={(e) =>
+                  setValues({ ...values, participants: e.target.value })
+                }
+                value={values.participants}
+                className="focus-visible:ring-0 focus-visible:ring-offset-0"
+              />
+            </div>
+          </MeetingModal>
+        );
+
       default:
         return null;
     }
@@ -339,49 +404,97 @@ const Dashboard = () => {
         <div className="lg:col-span-2 xl:col-span-3 space-y-6">
           {/* Quick Actions */}
           <section className="bg-white p-6 rounded-3xl shadow-lg">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Quick Actions</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">
+              Quick Actions
+            </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <button onClick={() => setMeetingState("isInstantMeeting")} className="flex flex-col items-start p-6 bg-purple-100 text-purple-800 rounded-2xl transition-transform transform hover:scale-105 hover:bg-purple-200">
+              <button
+                onClick={() => setMeetingState("isInstantMeeting")}
+                className="flex flex-col items-start p-6 bg-purple-100 text-purple-800 rounded-2xl transition-transform transform hover:scale-105 hover:bg-purple-200"
+              >
                 <Video className="w-8 h-8 mb-2" />
                 <span className="font-semibold text-lg">Start Meeting</span>
-                <span className="text-sm text-purple-600">Begin instantly.</span>
+                <span className="text-sm text-purple-600">
+                  Begin instantly.
+                </span>
               </button>
-              <button onClick={() => setMeetingState("isScheduleMeeting")} className="flex flex-col items-start p-6 bg-blue-100 text-blue-800 rounded-2xl transition-transform transform hover:scale-105 hover:bg-blue-200">
+              <button
+                onClick={() => setMeetingState("isScheduleMeeting")}
+                className="flex flex-col items-start p-6 bg-blue-100 text-blue-800 rounded-2xl transition-transform transform hover:scale-105 hover:bg-blue-200"
+              >
                 <Calendar className="w-8 h-8 mb-2" />
                 <span className="font-semibold text-lg">Schedule</span>
                 <span className="text-sm text-blue-600">Plan for later.</span>
               </button>
-              <button onClick={() => navigate("/past-meetings")} className="flex flex-col items-start p-6 bg-green-100 text-green-800 rounded-2xl transition-transform transform hover:scale-105 hover:bg-green-200">
+              <button
+                onClick={() => navigate("/past-meetings")}
+                className="flex flex-col items-start p-6 bg-green-100 text-green-800 rounded-2xl transition-transform transform hover:scale-105 hover:bg-green-200"
+              >
                 <FileText className="w-8 h-8 mb-2" />
                 <span className="font-semibold text-lg">Past Meetings</span>
-                <span className="text-sm text-green-600">Review previous calls.</span>
+                <span className="text-sm text-green-600">
+                  Review previous calls.
+                </span>
               </button>
-              <button onClick={() => setMeetingState("isJoiningMeeting")} className="flex flex-col items-start p-6 bg-yellow-100 text-yellow-800 rounded-2xl transition-transform transform hover:scale-105 hover:bg-yellow-200">
+              <button
+                onClick={() => setMeetingState("isJoiningMeeting")}
+                className="flex flex-col items-start p-6 bg-yellow-100 text-yellow-800 rounded-2xl transition-transform transform hover:scale-105 hover:bg-yellow-200"
+              >
                 <Link2 className="w-8 h-8 mb-2" />
                 <span className="font-semibold text-lg">Join Meeting</span>
-                <span className="text-sm text-yellow-600">Enter a link to join.</span>
+                <span className="text-sm text-yellow-600">
+                  Enter a link to join.
+                </span>
               </button>
             </div>
           </section>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <section className="bg-white p-6 rounded-3xl shadow-lg">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">Upcoming Meetings</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                Upcoming Meetings
+              </h2>
               <ul className="space-y-4">
                 {upcomingMeetings.length > 0 ? (
                   upcomingMeetings.map((meeting) => (
-                    <li key={meeting._id} className="p-4 rounded-2xl bg-gray-50 flex justify-between items-center">
+                    <li
+                      key={meeting._id}
+                      className="p-4 rounded-2xl bg-gray-50 flex justify-between items-center"
+                    >
                       <div>
-                        <div className="text-lg font-semibold">{meeting.title || "Meeting"}</div>
+                        <div className="text-lg font-semibold">
+                          {meeting.title || "Meeting"}
+                        </div>
                         <div className="text-sm text-gray-500">
                           {new Date(meeting.scheduledTime).toLocaleString()}
                         </div>
                       </div>
-                      <button
-                        onClick={() => navigate(`/meetings/${meeting.meetingId}`)}
-                        className="px-4 py-2 bg-purple-600 text-white rounded-full hover:bg-purple-700 transition-colors"
-                      >
-                        Join
-                      </button>
+
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() =>
+                            navigate(`/meetings/${meeting.meetingId}`)
+                          }
+                          className="px-4 py-2 bg-purple-600 text-white rounded-full hover:bg-purple-700 transition-colors"
+                        >
+                          Join
+                        </button>
+
+                        {meeting.createdBy?._id === user?._id && (
+                          <button
+                          title="Add Participants"
+                            onClick={() => {
+                              setValues({
+                                ...values,
+                                meetingId: meeting.meetingId,
+                              });
+                              setMeetingState("isAddParticipants");
+                            }}
+                            className="px-4 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors"
+                          >
+                            <UserPlus/>
+                          </button>
+                        )}
+                      </div>
                     </li>
                   ))
                 ) : (
@@ -391,19 +504,28 @@ const Dashboard = () => {
             </section>
             {/* Current Meetings */}
             <section className="bg-white p-6 rounded-3xl shadow-lg">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">Current Meetings</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                Current Meetings
+              </h2>
               <ul className="space-y-4">
                 {currentMeetings.length > 0 ? (
                   currentMeetings.map((meeting) => (
-                    <li key={meeting._id} className="p-4 rounded-2xl bg-gray-50 flex justify-between items-center">
+                    <li
+                      key={meeting._id}
+                      className="p-4 rounded-2xl bg-gray-50 flex justify-between items-center"
+                    >
                       <div>
-                        <div className="text-lg font-semibold">{meeting.title || "Meeting"}</div>
+                        <div className="text-lg font-semibold">
+                          {meeting.title || "Meeting"}
+                        </div>
                         <div className="text-sm text-gray-500">
                           {new Date(meeting.scheduledTime).toLocaleString()}
                         </div>
                       </div>
                       <button
-                        onClick={() => navigate(`/meetings/${meeting.meetingId}`)}
+                        onClick={() =>
+                          navigate(`/meetings/${meeting.meetingId}`)
+                        }
                         className="px-4 py-2 bg-purple-600 text-white rounded-full hover:bg-purple-700 transition-colors"
                       >
                         Join
@@ -411,7 +533,9 @@ const Dashboard = () => {
                     </li>
                   ))
                 ) : (
-                  <p className="text-gray-500">No ongoing meetings right now.</p>
+                  <p className="text-gray-500">
+                    No ongoing meetings right now.
+                  </p>
                 )}
               </ul>
             </section>
@@ -431,9 +555,7 @@ const Dashboard = () => {
               </div>
               <div className="p-4 rounded-2xl bg-red-50 flex flex-col items-center justify-center text-center">
                 <Timer className="w-8 h-8 text-red-500" />
-                <h3 className="text-xl font-bold mt-2">
-                  2h 15m
-                </h3>
+                <h3 className="text-xl font-bold mt-2">2h 15m</h3>
                 <p className="text-sm text-gray-500">Talk Time</p>
               </div>
             </div>

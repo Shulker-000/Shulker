@@ -23,6 +23,7 @@ import {
   Subtitles,
   Focus as FocusIcon,
   XCircle,
+  UserPlus,
 } from "lucide-react";
 import { StreamChat } from "stream-chat";
 import { toast } from "react-toastify";
@@ -62,6 +63,9 @@ const MeetingRoom = () => {
   const callingState = useCallCallingState();
   const cameraState = useCameraState();
   const isCameraOn = cameraState?.status === "enabled";
+  const [showAddParticipantsModal, setShowAddParticipantsModal]=useState(false);
+  const [participantEmails, setParticipantEmails] = useState("");
+  const [sending, setSending] = useState(false);
 
   const isMeetingOwner =
     call?.state?.createdBy?.id &&
@@ -129,7 +133,7 @@ const MeetingRoom = () => {
     return () => {
       isMounted = false;
       if (client) {
-      client.disconnectUser().catch(() => { });
+        client.disconnectUser().catch(() => {});
       }
       setChatClient(null);
       setChannel(null);
@@ -146,7 +150,9 @@ const MeetingRoom = () => {
       document.addEventListener("keydown", blockKeys);
       document.addEventListener("visibilitychange", blockVisibility);
       setFocusMode(true);
-      toast.info("Focus mode enabled. Enable DND Mode For Better Focus Experience.");
+      toast.info(
+        "Focus mode enabled. Enable DND Mode For Better Focus Experience."
+      );
     } catch (err) {
       console.error("Failed to enable focus mode:", err);
       toast.error("Focus mode failed to start.");
@@ -220,7 +226,8 @@ const MeetingRoom = () => {
 
       const data = await response.json();
       if (data && !call.state?.hasLeft) {
-        await call.leave();}
+        await call.leave();
+      }
     } catch (err) {
       console.error("Error ending call:", err);
     } finally {
@@ -359,17 +366,115 @@ const MeetingRoom = () => {
                 {copied ? <Check size={20} /> : <Copy size={20} />}
               </button>
 
+              {isMeetingOwner && (
+                <button
+                  onClick={() => {
+                    console.log("Invite button clicked ✅");
+                    setShowAddParticipantsModal(true);
+                  }}
+                  className="rounded-full bg-blue-600 p-3 hover:bg-green-700 transition-colors text-white"
+                  title="Invite Participants"
+                >
+                  <UserPlus size={20} />
+                </button>
+              )}
+
               <CallStatsButton />
               <EndCallButton
                 meetingId={call.id}
                 disabledEndButton={enableEnd}
-                isFocus = {focusMode}
+                isFocus={focusMode}
                 disableFocus={disableFocus}
               />
             </div>
           </BackgroundFilters>
         </StreamCall>
       </StreamTheme>
+      {showAddParticipantsModal && (
+        <div
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50"
+          onClick={(e) => {
+            if (e.target === e.currentTarget)
+              setShowAddParticipantsModal(false);
+          }}
+        >
+          <div className="bg-white rounded-2xl shadow-2xl p-6 w-[90%] max-w-md border border-gray-200">
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">
+              Invite Participants
+            </h2>
+
+            <label className="text-sm text-gray-600 block mb-2">
+              Enter participant emails (comma-separated)
+            </label>
+            <input
+              type="text"
+              placeholder="e.g., user1@email.com, user2@email.com"
+              value={participantEmails}
+              onChange={(e) => setParticipantEmails(e.target.value)}
+              className="w-full border border-gray-300 rounded-md p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4"
+            />
+
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setShowAddParticipantsModal(false)}
+                disabled={sending}
+                className="px-4 py-2 rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200 transition disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  const emails = participantEmails
+                    .split(",")
+                    .map((e) => e.trim())
+                    .filter(Boolean);
+
+                  if (emails.length === 0) {
+                    toast.error("Please enter at least one valid email.");
+                    return;
+                  }
+
+                  setSending(true); // 🔹 start sending state
+                  try {
+                    const res = await fetch(
+                      `${
+                        import.meta.env.VITE_BACKEND_URL
+                      }/api/v1/meetings/add-participants`,
+                      {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                          meetingId: call.id,
+                          participants: emails,
+                        }),
+                        credentials: "include",
+                      }
+                    );
+
+                    const data = await res.json();
+                    if (!res.ok)
+                      throw new Error(
+                        data.message || "Failed to invite participants"
+                      );
+
+                    toast.success("Invitations sent successfully");
+                    setParticipantEmails("");
+                    setShowAddParticipantsModal(false);
+                  } catch (err) {
+                    toast.error(err.message || "Error sending invitations");
+                  } finally {
+                    setSending(false); // 🔹 end sending state
+                  }
+                }}
+                disabled={sending}
+                className="px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 transition disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {sending ? "Sending..." : "Send Invites"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 };
