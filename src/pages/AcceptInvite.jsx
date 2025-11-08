@@ -1,26 +1,25 @@
 import React, { useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { useToast } from "./../components/ui/use-toast";
+import { toast } from "react-toastify";
 
 const AcceptInvite = () => {
   const { meetingId } = useParams();
   const navigate = useNavigate();
-  const { toast } = useToast();
   const user = useSelector((state) => state.auth.user);
-  const isUserAuthenticated = !!user?.token; // A simple check for authentication
+  const isUserAuthenticated = !!user?._id; // A simple check for authentication
 
   useEffect(() => {
     const acceptInvitation = async () => {
       // ⚠ Check if the user is authenticated first
       if (!isUserAuthenticated) {
-        toast({ title: "Please log in to accept the invitation." });
+        toast.error("Please log in to accept the invitation.");
         navigate(`/login?redirect=/accept-invite/${meetingId}`);
         return;
       }
 
       if (!user || !user.email || !user._id || !meetingId) {
-        toast({ title: "User or meeting ID missing" });
+        toast.error("User or meeting ID missing");
         return;
       }
 
@@ -40,25 +39,21 @@ const AcceptInvite = () => {
             credentials: "include",
           }
         );
-
         if (!response.ok) {
           const errorData = await response.json();
           throw new Error(errorData.message || "Failed to accept invitation");
         }
-
-        toast({ title: "Invitation accepted! Joining meeting..." });
-        navigate(`/meetings/${meetingId}`);
+        toast.success("Invitation accepted! Joining meeting...");
+        navigate(`/`);
       } catch (error) {
-        console.error("Error accepting invitation:", error);
-        toast({
-          title: "Failed to accept invitation",
-          description: error.message,
-        });
+        toast.error(error.message);
+        navigate(`/`);
       }
+
     };
 
     acceptInvitation();
-  }, [meetingId, user, navigate, toast, isUserAuthenticated]);
+  }, [meetingId]);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen text-center">

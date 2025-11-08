@@ -363,6 +363,7 @@ const MeetingRoom = () => {
               <EndCallButton
                 meetingId={call.id}
                 disabledEndButton={enableEnd}
+                isFocus = {focusMode}
                 disableFocus={disableFocus}
               />
             </div>

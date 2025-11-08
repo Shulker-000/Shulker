@@ -3,7 +3,12 @@ import { useCall, useCallStateHooks } from "@stream-io/video-react-sdk";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 
-const EndCallButton = ({ meetingId, disabledEndButton, disableFocus }) => {
+const EndCallButton = ({
+  meetingId,
+  disabledEndButton,
+  isFocus,
+  disableFocus,
+}) => {
   const call = useCall();
   const navigate = useNavigate();
   const user = useSelector((state) => state.auth.user);
@@ -42,12 +47,13 @@ const EndCallButton = ({ meetingId, disabledEndButton, disableFocus }) => {
       if (!response.ok) {
         console.error("Failed to notify backend about ending the meeting");
       }
-      if (response.ok)
-        await call.endCall();
+      if (response.ok) await call.endCall();
     } catch (err) {
       console.error("Error ending call:", err);
     } finally {
-      await disableFocus();
+      if (isFocus) {
+        await disableFocus();
+      }
       navigate("/");
     }
   };
@@ -58,7 +64,7 @@ const EndCallButton = ({ meetingId, disabledEndButton, disableFocus }) => {
       onClick={endCall}
       title={
         disabledEndButton
-        ? "End recording for everyone"
+          ? "End recording for everyone"
           : "Wait for recording to be processed"
       }
       className={`w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 
@@ -66,8 +72,8 @@ const EndCallButton = ({ meetingId, disabledEndButton, disableFocus }) => {
               transition duration-200
               ${
                 disabledEndButton
-                ? "bg-red-600 hover:bg-red-700"
-                : "bg-gray-400 cursor-not-allowed"
+                  ? "bg-red-600 hover:bg-red-700"
+                  : "bg-gray-400 cursor-not-allowed"
               }`}
     >
       End call for everyone
