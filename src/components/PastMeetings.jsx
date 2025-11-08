@@ -182,12 +182,15 @@ const PastMeetings = () => {
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         const message =
-          errorData.message || `Failed to fetch summary (status ${response.status})`;
+          errorData.message ||
+          `Failed to fetch summary (status ${response.status})`;
         throw new Error(message);
       }
 
       const data = await response.json();
-      setSelectedSummary(data?.data?.summary || "No summary found for this meeting.");
+      setSelectedSummary(
+        data?.data?.summary || "No summary found for this meeting."
+      );
     } catch (err) {
       console.error("Error fetching summary:", err);
       setSelectedSummary("Failed to load summary. Please try again.");
@@ -281,6 +284,7 @@ const PastMeetings = () => {
               return (
                 <div
                   key={meeting._id}
+                  onClick={() => navigate(`/past-meetings/${meeting._id}`)} // ✅ route to MeetingDetails
                   className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300 cursor-pointer flex flex-col justify-between"
                 >
                   <div>

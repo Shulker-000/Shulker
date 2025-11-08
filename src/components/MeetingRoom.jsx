@@ -54,6 +54,7 @@ const MeetingRoom = () => {
   const [chatClient, setChatClient] = useState(null);
   const [channel, setChannel] = useState(null);
   const [showCaptions, setShowCaptions] = useState(false);
+  const [enableEnd, setEnableEnd] = useState(true);
 
   const { useCallCallingState } = useCallStateHooks();
 
@@ -251,7 +252,7 @@ const MeetingRoom = () => {
                   className={user._id === call.state.createdBy.id ? "host" : ""}
                 >
                   <CallControls onLeave={leaveCall} />
-                  <Recordings />
+                  <Recordings setEnableEnd={setEnableEnd} />
                 </div>
               </div>
 
@@ -358,7 +359,10 @@ const MeetingRoom = () => {
                 </button>
 
                 <CallStatsButton />
-                <EndCallButton meetingId={call.id} />
+                <EndCallButton
+                  meetingId={call.id}
+                  disabledEndButton={enableEnd}
+                />
               </div>
             </div>
           </BackgroundFilters>
