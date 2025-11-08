@@ -8,9 +8,10 @@ export default function VerifyEmailPage() {
   const { token } = useParams();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true); // start as loading
-
+  
   useEffect(() => {
     const verifyEmail = async () => {
+      const token = localStorage.getItem("authToken");
       try {
         const response = await fetch(
           `${
@@ -18,8 +19,9 @@ export default function VerifyEmailPage() {
           }/api/v1/users/verify-email/${token}`,
           {
             method: "GET",
-            headers: { "Content-Type": "application/json" },
-            credentials: "include",
+            headers: { "Content-Type": "application/json", 
+              "Authorization": `Bearer ${token}`
+             },
           }
         );
 

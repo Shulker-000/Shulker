@@ -211,12 +211,15 @@ const MeetingRoom = () => {
         toast.error("Configuration error: Missing backend URL.");
         return;
       }
-
+      const token = localStorage.getItem("authToken");
       const response = await fetch(`${backendUrl}/api/v1/meetings/leave`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ meetingId: call.id, userId: user._id }),
-        credentials: "include",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+        body: JSON.stringify({
+          meetingId: call.id,
+          userId: user._id,
+        })
+
       });
 
       if (response.status === 403) {
