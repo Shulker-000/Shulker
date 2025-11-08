@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import "@stream-io/video-react-sdk/dist/css/styles.css";
 import {
   CallControls,
@@ -21,6 +21,9 @@ import {
   SquarePen,
   Image as ImageIcon,
   Subtitles,
+  Focus as FocusIcon,
+  XCircle,
+  UserPlus,
 } from "lucide-react";
 import { StreamChat } from "stream-chat";
 import { toast } from "react-toastify";
@@ -38,7 +41,6 @@ import { cn } from "../lib/utils";
 import "../index.css";
 import { useSelector } from "react-redux";
 import BackgroundFilters from "./BackgroundFilters.jsx";
-// import MeetingCaptions from "./MeetingCaptions.jsx";
 import Recordings from "./Recordings.jsx";
 
 const MeetingRoom = () => {
@@ -53,22 +55,24 @@ const MeetingRoom = () => {
   const [copied, setCopied] = useState(false);
   const [chatClient, setChatClient] = useState(null);
   const [channel, setChannel] = useState(null);
-  const [showCaptions, setShowCaptions] = useState(false);
   const [enableEnd, setEnableEnd] = useState(true);
+  const [focusMode, setFocusMode] = useState(false);
 
-  const { useCallCallingState } = useCallStateHooks();
-
+  const { useCallCallingState, useCameraState } = useCallStateHooks();
   const call = useCall();
-
-  const { useCameraState } = useCallStateHooks();
+  const callingState = useCallCallingState();
   const cameraState = useCameraState();
   const isCameraOn = cameraState?.status === "enabled";
+  const [showAddParticipantsModal, setShowAddParticipantsModal]=useState(false);
+  const [participantEmails, setParticipantEmails] = useState("");
+  const [sending, setSending] = useState(false);
 
   const isMeetingOwner =
     call?.state?.createdBy?.id &&
     user?._id &&
     call.state.createdBy.id === user._id;
 
+  // ✅ Email verification check
   useEffect(() => {
     if (user && !user.isEmailVerified) {
       toast.error("Please verify your email to join the meeting.");
@@ -82,6 +86,7 @@ const MeetingRoom = () => {
     );
   }
 
+  // ✅ Stream Chat setup
   useEffect(() => {
     if (!user || !call || !streamToken) return;
 
@@ -96,23 +101,18 @@ const MeetingRoom = () => {
 
     async function setupChat() {
       try {
-
-        if (client.userID) {
-          await client.disconnectUser();
-        }
-
-        const userIdString = user._id.toString();
+        if (client.userID) await client.disconnectUser();
 
         await client.connectUser(
           {
-            id: userIdString,
-            name: user.name || user.username || userIdString,
+            id: user._id.toString(),
+            name: user.name || user.username || user._id.toString(),
             image: user.image || user.avatar || "",
           },
           streamToken
         );
 
-        const channelId = "meeting-room-" + call.id;
+        const channelId = `meeting-room-${call.id}`;
         const meetingChannel = client.channel("messaging", channelId, {
           name: "Meeting Room Chat",
         });
@@ -133,42 +133,72 @@ const MeetingRoom = () => {
     return () => {
       isMounted = false;
       if (client) {
-        client.disconnectUser().catch(() => { });
+        client.disconnectUser().catch(() => {});
       }
       setChatClient(null);
       setChannel(null);
     };
   }, [user, call, streamToken, navigate]);
 
-  const callingState = useCallCallingState();
-  if (callingState !== CallingState.JOINED) {
-    return <Loader />;
-  }
+  // ✅ Focus Mode logic
+  const enableFocus = useCallback(async () => {
+    try {
+      if (!document.fullscreenElement) {
+        await document.documentElement.requestFullscreen();
+      }
+      document.addEventListener("contextmenu", disableContext);
+      document.addEventListener("keydown", blockKeys);
+      document.addEventListener("visibilitychange", blockVisibility);
+      setFocusMode(true);
+      toast.info(
+        "Focus mode enabled. Enable DND Mode For Better Focus Experience."
+      );
+    } catch (err) {
+      console.error("Failed to enable focus mode:", err);
+      toast.error("Focus mode failed to start.");
+    }
+  }, []);
 
-  const CallLayout = () => {
-    switch (layout) {
-      case "grid":
-        return <SpeakerLayout participantsBarPosition="right" />;
-      case "speaker-left":
-        return <SpeakerLayout participantsBarPosition="left" />;
-      case "speaker-right":
-        return <SpeakerLayout participantsBarPosition="right" />;
-      default:
-        return <SpeakerLayout participantsBarPosition="left" />;
+  const disableFocus = useCallback(async () => {
+    try {
+      if (document.fullscreenElement) await document.exitFullscreen();
+      document.removeEventListener("contextmenu", disableContext);
+      document.removeEventListener("keydown", blockKeys);
+      document.removeEventListener("visibilitychange", blockVisibility);
+      setFocusMode(false);
+      toast.info("Focus mode disabled.");
+    } catch (err) {
+      console.error("Failed to disable focus mode:", err);
+    }
+  }, []);
+
+  const disableContext = (e) => e.preventDefault();
+
+  const blockKeys = (e) => {
+    const blockedCombos = [
+      "Alt",
+      "Tab",
+      "Meta",
+      "Control",
+      "Escape",
+      "F11",
+      "F5",
+      "F12",
+    ];
+    if (blockedCombos.includes(e.key) || e.ctrlKey || e.metaKey || e.altKey) {
+      e.preventDefault();
+      e.stopPropagation();
     }
   };
 
-  const copyLink = () => {
-    if (call) {
-      // Assuming the link to join the meeting uses the call.id
-      const meetingLink = `${window.location.origin}/meetings/${call.id}`;
-      navigator.clipboard.writeText(meetingLink);
-      toast.success("Meeting link copied!");
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+  const blockVisibility = (e) => {
+    if (document.hidden) {
+      document.title = "Focus mode active - Stay in!";
+      e.preventDefault();
     }
   };
 
+  // ✅ Leave Call
   const leaveCall = async () => {
     try {
       if (!user?._id) {
@@ -198,16 +228,38 @@ const MeetingRoom = () => {
       }
 
       const data = await response.json();
-
-      if (data) {
-        if (!call.state?.hasLeft) {
-          await call.leave();
-        }
+      if (data && !call.state?.hasLeft) {
+        await call.leave();
       }
     } catch (err) {
       console.error("Error ending call:", err);
     } finally {
+      await disableFocus();
       navigate("/");
+    }
+  };
+
+  if (callingState !== CallingState.JOINED) return <Loader />;
+
+  const CallLayout = () => {
+    switch (layout) {
+      case "grid":
+        return <SpeakerLayout participantsBarPosition="right" />;
+      case "speaker-left":
+        return <SpeakerLayout participantsBarPosition="left" />;
+      case "speaker-right":
+      default:
+        return <SpeakerLayout participantsBarPosition="right" />;
+    }
+  };
+
+  const copyLink = () => {
+    if (call) {
+      const meetingLink = `${window.location.origin}/meetings/${call.id}`;
+      navigator.clipboard.writeText(meetingLink);
+      toast.success("Meeting link copied!");
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
     }
   };
 
@@ -215,7 +267,6 @@ const MeetingRoom = () => {
     <section className="relative h-screen w-full overflow-hidden bg-gray-50 text-gray-900">
       <StreamTheme as="main" mode="light" className="h-full w-full">
         <StreamCall call={call}>
-          {/* ✅ Unified Background Filter Provider */}
           <BackgroundFilters showSelector={showBackgroundSelector}>
             <div className="flex w-full h-[calc(100vh-64px)] justify-center items-center relative">
               <div className="flex w-[100vw] items-center justify-center max-w-[1000px]">
@@ -256,118 +307,177 @@ const MeetingRoom = () => {
                 </div>
               </div>
 
+              {/* Focus Mode */}
               <button
-                // onClick={() => setShowCaptions((prev) => !prev)}
-                // className={cn(
-                //   "rounded-full p-3 transition-colors",
-                //   showCaptions
-                //     ? "bg-blue-600 hover:bg-blue-700 text-white"
-                //     : "bg-gray-200 hover:bg-gray-300 text-gray-800"
-                // )}
-                title="Toggle Captions"
+                onClick={() => (focusMode ? disableFocus() : enableFocus())}
+                className={cn(
+                  "rounded-full p-3 transition-colors",
+                  focusMode
+                    ? "bg-red-600 hover:bg-red-700 text-white"
+                    : "bg-gray-200 hover:bg-gray-300 text-gray-800"
+                )}
+                title={
+                  focusMode ? "Disable Focus Mode" : "Enable Focus Mode (Lock)"
+                }
               >
-                <Subtitles size={20} />
+                {focusMode ? <XCircle size={20} /> : <FocusIcon size={20} />}
               </button>
 
-              <div className="flex items-center gap-4">
-                <a
-                  href="/whiteboard"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="rounded-full bg-blue-600 p-3 hover:bg-blue-700 transition-colors text-white flex items-center justify-center"
-                  title="Open Whiteboard"
+              {/* Background Filter, Participants, Chat, etc. */}
+              {isCameraOn && (
+                <button
+                  onClick={() => setShowBackgroundSelector((prev) => !prev)}
+                  className={cn(
+                    "rounded-full p-3 transition-colors",
+                    showBackgroundSelector
+                      ? "bg-blue-600 hover:bg-blue-700 text-white"
+                      : "bg-gray-200 hover:bg-gray-300 text-gray-800"
+                  )}
+                  title="Change Background Effects"
                 >
-                  <SquarePen size={20} />
-                </a>
+                  <ImageIcon size={20} />
+                </button>
+              )}
 
-                {/* Layout Menu */}
-                <DropdownMenu>
-                  <DropdownMenuTrigger className="cursor-pointer rounded-full bg-gray-200 p-3 hover:bg-gray-300 transition-colors">
-                    <LayoutList size={20} className="text-gray-800" />
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="border border-gray-300 bg-gray-100 text-gray-900 shadow-lg">
-                    {[
-                      { key: "grid", label: "Grid" },
-                      { key: "speaker-left", label: "Speaker Left" },
-                      { key: "speaker-right", label: "Speaker Right" },
-                    ].map((item, index) => (
-                      <div key={item.key}>
-                        <DropdownMenuItem
-                          onClick={() => setLayout(item.key)}
-                          className="flex cursor-pointer items-center justify-between hover:bg-gray-200"
-                        >
-                          <span>{item.label}</span>
-                          {layout === item.key && (
-                            <Check size={16} className="text-blue-600" />
-                          )}
-                        </DropdownMenuItem>
-                        {index < 2 && (
-                          <DropdownMenuSeparator className="border-gray-300" />
-                        )}
-                      </div>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
+              <button
+                onClick={() => {
+                  setShowParticipants((prev) => !prev);
+                  if (!showParticipants) setShowChat(false);
+                }}
+                className="rounded-full bg-gray-200 p-3 hover:bg-gray-300 transition-colors"
+                title="Participants"
+              >
+                <Users size={20} className="text-gray-800" />
+              </button>
 
-                {/* Toggle Background Filters */}
-                {isCameraOn && (
-                  <button
-                    onClick={() => setShowBackgroundSelector((prev) => !prev)}
-                    className={cn(
-                      "rounded-full p-3 transition-colors",
-                      showBackgroundSelector
-                        ? "bg-blue-600 hover:bg-blue-700 text-white"
-                        : "bg-gray-200 hover:bg-gray-300 text-gray-800"
-                    )}
-                    title="Change Background Effects"
-                  >
-                    <ImageIcon size={20} />
-                  </button>
-                )}
+              <button
+                onClick={() => {
+                  setShowChat((prev) => !prev);
+                  if (!showChat) setShowParticipants(false);
+                }}
+                className="rounded-full bg-gray-200 p-3 hover:bg-gray-300 transition-colors"
+                title="Chat"
+              >
+                <MessageCircle size={20} className="text-gray-800" />
+              </button>
 
-                {/* Participants Toggle */}
+              <button
+                onClick={copyLink}
+                className="rounded-full bg-blue-600 p-3 hover:bg-blue-700 transition-colors text-white"
+                title="Copy Meeting Link"
+              >
+                {copied ? <Check size={20} /> : <Copy size={20} />}
+              </button>
+
+              {isMeetingOwner && (
                 <button
                   onClick={() => {
-                    setShowParticipants((prev) => !prev);
-                    if (!showParticipants) setShowChat(false);
+                    console.log("Invite button clicked ✅");
+                    setShowAddParticipantsModal(true);
                   }}
-                  className="rounded-full bg-gray-200 p-3 hover:bg-gray-300 transition-colors"
-                  title="Participants"
+                  className="rounded-full bg-blue-600 p-3 hover:bg-green-700 transition-colors text-white"
+                  title="Invite Participants"
                 >
-                  <Users size={20} className="text-gray-800" />
+                  <UserPlus size={20} />
                 </button>
+              )}
 
-                {/* Chat Toggle */}
-                <button
-                  onClick={() => {
-                    setShowChat((prev) => !prev);
-                    if (!showChat) setShowParticipants(false);
-                  }}
-                  className="rounded-full bg-gray-200 p-3 hover:bg-gray-300 transition-colors"
-                  title="Chat"
-                >
-                  <MessageCircle size={20} className="text-gray-800" />
-                </button>
-
-                {/* Copy Link */}
-                <button
-                  onClick={copyLink}
-                  className="rounded-full bg-blue-600 p-3 hover:bg-blue-700 transition-colors text-white"
-                  title="Copy Meeting Link"
-                >
-                  {copied ? <Check size={20} /> : <Copy size={20} />}
-                </button>
-
-                <CallStatsButton />
-                <EndCallButton
-                  meetingId={call.id}
-                  disabledEndButton={enableEnd}
-                />
-              </div>
+              <CallStatsButton />
+              <EndCallButton
+                meetingId={call.id}
+                disabledEndButton={enableEnd}
+                isFocus={focusMode}
+                disableFocus={disableFocus}
+              />
             </div>
           </BackgroundFilters>
         </StreamCall>
       </StreamTheme>
+      {showAddParticipantsModal && (
+        <div
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50"
+          onClick={(e) => {
+            if (e.target === e.currentTarget)
+              setShowAddParticipantsModal(false);
+          }}
+        >
+          <div className="bg-white rounded-2xl shadow-2xl p-6 w-[90%] max-w-md border border-gray-200">
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">
+              Invite Participants
+            </h2>
+
+            <label className="text-sm text-gray-600 block mb-2">
+              Enter participant emails (comma-separated)
+            </label>
+            <input
+              type="text"
+              placeholder="e.g., user1@email.com, user2@email.com"
+              value={participantEmails}
+              onChange={(e) => setParticipantEmails(e.target.value)}
+              className="w-full border border-gray-300 rounded-md p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4"
+            />
+
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setShowAddParticipantsModal(false)}
+                disabled={sending}
+                className="px-4 py-2 rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200 transition disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  const emails = participantEmails
+                    .split(",")
+                    .map((e) => e.trim())
+                    .filter(Boolean);
+
+                  if (emails.length === 0) {
+                    toast.error("Please enter at least one valid email.");
+                    return;
+                  }
+
+                  setSending(true); // 🔹 start sending state
+                  try {
+                    const res = await fetch(
+                      `${
+                        import.meta.env.VITE_BACKEND_URL
+                      }/api/v1/meetings/add-participants`,
+                      {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                          meetingId: call.id,
+                          participants: emails,
+                        }),
+                        credentials: "include",
+                      }
+                    );
+
+                    const data = await res.json();
+                    if (!res.ok)
+                      throw new Error(
+                        data.message || "Failed to invite participants"
+                      );
+
+                    toast.success("Invitations sent successfully");
+                    setParticipantEmails("");
+                    setShowAddParticipantsModal(false);
+                  } catch (err) {
+                    toast.error(err.message || "Error sending invitations");
+                  } finally {
+                    setSending(false); // 🔹 end sending state
+                  }
+                }}
+                disabled={sending}
+                className="px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 transition disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {sending ? "Sending..." : "Send Invites"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 };
