@@ -88,7 +88,7 @@ export default function ProfilePage() {
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
-
+  const token = localStorage.getItem("authToken");
   const fileInputRef = useRef(null);
 
   useEffect(() => {
@@ -98,8 +98,7 @@ export default function ProfilePage() {
           `${import.meta.env.VITE_BACKEND_URL}/api/v1/users/current-user`,
           {
             method: "GET",
-            headers: { "Content-Type": "application/json" },
-            credentials: "include",
+            headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
           }
         );
         const response = await res.json();
@@ -149,8 +148,9 @@ export default function ProfilePage() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
         },
-        credentials: "include",
+
       });
 
       if (!response.ok) {
@@ -267,9 +267,11 @@ export default function ProfilePage() {
         `${import.meta.env.VITE_BACKEND_URL}/api/v1/users/edit-profile`,
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
           body: JSON.stringify(profileUpdates),
-          credentials: "include",
         }
       );
 
@@ -298,8 +300,10 @@ export default function ProfilePage() {
         }/api/v1/users/send-email-verification`,
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
         }
       );
 

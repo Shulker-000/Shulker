@@ -23,7 +23,7 @@ const AcceptInvite = () => {
         toast({ title: "User or meeting ID missing" });
         return;
       }
-
+      const token = localStorage.getItem("authToken");
       try {
         const response = await fetch(
           `${import.meta.env.VITE_BACKEND_URL}/api/v1/meetings/accept-invite`,
@@ -31,13 +31,14 @@ const AcceptInvite = () => {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
+              "Authorization": `Bearer ${token}`
             },
             body: JSON.stringify({
               meetingId,
               email: user.email,
               userId: user._id,
             }),
-            credentials: "include",
+            
           }
         );
 

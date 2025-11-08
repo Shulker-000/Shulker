@@ -21,9 +21,9 @@ const tokenProvider = async (userId, dispatch) => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({ userId }),
-      credentials: "include",
     }
   );
 
@@ -47,7 +47,7 @@ const StreamVideoProvider = ({ children }) => {
   useEffect(() => {
     if (!isLoggedIn || !user?._id) {
       if (videoClient) {
-        videoClient.disconnectUser().catch(() => {});
+        videoClient.disconnectUser().catch(() => { });
         setVideoClient(null);
       }
       setLoading(false);

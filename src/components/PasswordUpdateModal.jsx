@@ -37,16 +37,15 @@ const PasswordUpdateModal = ({ isVisible, onClose }) => {
       setError("All fields are required.");
       return;
     }
-
+    const token = localStorage.getItem("authToken");
     setLoading(true);
     try {
       const response = await fetch(
         `${import.meta.env.VITE_BACKEND_URL}/api/v1/users/change-password`,
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
           body: JSON.stringify({ currentPassword, newPassword }),
-          credentials: "include",
         }
       );
 
