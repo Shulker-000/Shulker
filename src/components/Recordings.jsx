@@ -62,11 +62,14 @@ const Recordings = ({ setEnableEnd }) => {
         const formData = new FormData();
         formData.append("meetingId", call.id);
         formData.append("recording", file);
+        const token = localStorage.getItem("authToken");
 
         const res = await fetch(`${backendUrl}/api/v1/meetings/add-recording`, {
           method: "POST",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+          },
           body: formData,
-          credentials: "include",
         });
 
         const data = await res.json().catch(() => ({}));

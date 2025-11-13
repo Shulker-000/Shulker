@@ -25,7 +25,7 @@ const initialValues = {
   description: "",
   participants: "", // ADDED: New field for participants
   link: "",
-   meetingId: "",
+  meetingId: "",
 };
 
 const Dashboard = () => {
@@ -59,14 +59,12 @@ const Dashboard = () => {
             headers: {
               "Content-Type": "application/json",
               "Authorization": `Bearer ${token}`,
-            }
+            },
           }
         );
         if (!response.ok) {
           const errorData = await response.json();
-          throw new Error(
-            errorData.message || "Failed to fetch meetings."
-          );
+          throw new Error(errorData.message || "Failed to fetch meetings.");
         }
         const res = await response.json();
         setMeetings(res.data || []);
@@ -78,6 +76,26 @@ const Dashboard = () => {
     };
     fetchMeetings();
   }, [user]);
+
+  useEffect(() => {
+  const ensurePersonalRoomExists = async () => {
+    if (!client || !user?.personalRoomId?.meetingId) return;
+    const call = client.call("default", user.personalRoomId.meetingId);
+    try {
+      await call.getOrCreate({
+        data: {
+          custom: { description: "Personal Meeting Room" },
+        },
+      });
+      console.log("✅ Personal room call verified/created");
+    } catch (err) {
+      console.error("❌ Failed to verify/create personal room:", err);
+    }
+  };
+
+  ensurePersonalRoomExists();
+}, [client, user]);
+
 
   const createMeeting = async () => {
     if (!client || !user) {
@@ -92,7 +110,8 @@ const Dashboard = () => {
         const call = client.call("default", id);
 
         if (!call) throw new Error("Failed to create call object.");
-        const startsAt = values.dateTime.toISOString() || new Date().toISOString();
+        const startsAt =
+          values.dateTime.toISOString() || new Date().toISOString();
         const description = values.description || "Instant Meeting";
         await call.getOrCreate({
           data: {
@@ -115,7 +134,6 @@ const Dashboard = () => {
               participants: [], // No participants for instant meeting
               title: "Instant Meeting",
             }),
-            
           }
         );
 
@@ -155,7 +173,7 @@ const Dashboard = () => {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}`,
+              "Authorization": `Bearer ${token}`,
             },
             body: JSON.stringify({
               meetingId: id,
@@ -185,12 +203,8 @@ const Dashboard = () => {
     }
   };
 
-  const upcomingMeetings = meetings.filter(
-    (m) => m.status == 'scheduled'
-  );
-  const currentMeetings = meetings.filter(
-    (m) => m.status == 'ongoing'
-  );
+  const upcomingMeetings = meetings.filter((m) => m.status == "scheduled");
+  const currentMeetings = meetings.filter((m) => m.status == "ongoing");
 
   const renderModal = () => {
     switch (meetingState) {
@@ -319,7 +333,7 @@ const Dashboard = () => {
                 toast({ title: "Enter at least one valid email." });
                 return;
               }
-
+              const token = localStorage.getItem("authToken");
               try {
                 const res = await fetch(
                   `${
@@ -329,12 +343,12 @@ const Dashboard = () => {
                     method: "POST",
                     headers: {
                       "Content-Type": "application/json",
+                      "Authorization": `Bearer ${token}`,
                     },
                     body: JSON.stringify({
                       meetingId: values.meetingId,
                       participants: participantEmails,
                     }),
-                    credentials: "include",
                   }
                 );
 
@@ -377,9 +391,25 @@ const Dashboard = () => {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
-          <svg className="animate-spin h-10 w-10 text-gray-400 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          <svg
+            className="animate-spin h-10 w-10 text-gray-400 mx-auto"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <circle
+              className="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              strokeWidth="4"
+            ></circle>
+            <path
+              className="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            ></path>
           </svg>
           <p className="mt-4 text-gray-600">Loading meetings...</p>
         </div>
@@ -392,7 +422,10 @@ const Dashboard = () => {
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center p-8 bg-white rounded-2xl shadow-lg">
           <p className="text-red-500 font-semibold">Error: {error}</p>
-          <button onClick={() => window.location.reload()} className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
             Retry
           </button>
         </div>
@@ -484,7 +517,7 @@ const Dashboard = () => {
 
                         {meeting.createdBy?._id === user?._id && (
                           <button
-                          title="Add Participants"
+                            title="Add Participants"
                             onClick={() => {
                               setValues({
                                 ...values,
@@ -494,7 +527,7 @@ const Dashboard = () => {
                             }}
                             className="px-4 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors"
                           >
-                            <UserPlus/>
+                            <UserPlus />
                           </button>
                         )}
                       </div>
@@ -556,11 +589,21 @@ const Dashboard = () => {
                 </h3>
                 <p className="text-sm text-gray-500">Upcoming</p>
               </div>
-              <div className="p-4 rounded-2xl bg-red-50 flex flex-col items-center justify-center text-center">
-                <Timer className="w-8 h-8 text-red-500" />
-                <h3 className="text-xl font-bold mt-2">2h 15m</h3>
-                <p className="text-sm text-gray-500">Talk Time</p>
-              </div>
+<div
+  onClick={() => {
+    if (user?.personalRoomId?.meetingId) {
+      navigate(`/meetings/${user.personalRoomId.meetingId}`);
+    } else {
+      toast({ title: "No personal room found" });
+    }
+  }}
+  className="p-4 rounded-2xl bg-red-50 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-red-100 transition-colors"
+>
+  <Video className="w-8 h-8 text-red-500" />
+  <h3 className="text-xl font-bold mt-2">Personal Room</h3>
+  <p className="text-sm text-gray-500">Join your personal room</p>
+</div>
+
             </div>
           </section>
         </div>

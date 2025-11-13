@@ -63,7 +63,8 @@ const MeetingRoom = () => {
   const callingState = useCallCallingState();
   const cameraState = useCameraState();
   const isCameraOn = cameraState?.status === "enabled";
-  const [showAddParticipantsModal, setShowAddParticipantsModal]=useState(false);
+  const [showAddParticipantsModal, setShowAddParticipantsModal] =
+    useState(false);
   const [participantEmails, setParticipantEmails] = useState("");
   const [sending, setSending] = useState(false);
 
@@ -214,12 +215,14 @@ const MeetingRoom = () => {
       const token = localStorage.getItem("authToken");
       const response = await fetch(`${backendUrl}/api/v1/meetings/leave`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
         body: JSON.stringify({
           meetingId: call.id,
           userId: user._id,
-        })
-
+        }),
       });
 
       if (response.status === 403) {
@@ -438,6 +441,7 @@ const MeetingRoom = () => {
                   }
 
                   setSending(true); // 🔹 start sending state
+                  const token = localStorage.getItem("authToken");
                   try {
                     const res = await fetch(
                       `${
@@ -445,12 +449,14 @@ const MeetingRoom = () => {
                       }/api/v1/meetings/add-participants`,
                       {
                         method: "POST",
-                        headers: { "Content-Type": "application/json" },
+                        headers: {
+                          "Content-Type": "application/json",
+                          "Authorization": `Bearer ${token}`,
+                        },
                         body: JSON.stringify({
                           meetingId: call.id,
                           participants: emails,
                         }),
-                        credentials: "include",
                       }
                     );
 

@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { login, logout, updateUserProfile } from "../features/authSlice";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import PersonalRoomId from "../lib/PersonalRoomId";
 
 const AuthContext = createContext(null);
 
@@ -70,7 +71,7 @@ const AuthProvider = ({ children }) => {
               method: "GET",
               headers: {
                 "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`,
+                "Authorization": `Bearer ${token}`,
               }
             }
           );
@@ -91,6 +92,10 @@ const AuthProvider = ({ children }) => {
 
           // Success logic
           const data = await res.json();
+          if (!data.data.personalRoomId) {
+            data.data.personalRoomId = await PersonalRoomId(token, dispatch, data.data);
+          }
+
           dispatch(updateUserProfile(data.data));
 
           setTimeout(() => {
