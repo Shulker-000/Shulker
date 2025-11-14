@@ -42,6 +42,8 @@ import "../index.css";
 import { useSelector } from "react-redux";
 import BackgroundFilters from "./BackgroundFilters.jsx";
 import Recordings from "./Recordings.jsx";
+import { useCaptions } from "../hooks/useCaptions";
+
 
 const MeetingRoom = () => {
   const navigate = useNavigate();
@@ -67,6 +69,11 @@ const MeetingRoom = () => {
     useState(false);
   const [participantEmails, setParticipantEmails] = useState("");
   const [sending, setSending] = useState(false);
+
+  const [isCaptionsOn, setIsCaptionsOn] = useState(false);
+  const [captionLanguage, setCaptionLanguage] = useState("english");
+  const { captionText } = useCaptions(call, isCaptionsOn, captionLanguage);
+
 
   const isMeetingOwner =
     call?.state?.createdBy?.id &&
@@ -134,12 +141,12 @@ const MeetingRoom = () => {
     return () => {
       isMounted = false;
       if (client) {
-        client.disconnectUser().catch(() => {});
+        client.disconnectUser().catch(() => { });
       }
       setChatClient(null);
       setChannel(null);
     };
-  }, [user, call, streamToken, navigate]);
+  }, [call?.id]);
 
   // ✅ Focus Mode logic
   const enableFocus = useCallback(async () => {
@@ -272,6 +279,17 @@ const MeetingRoom = () => {
         <StreamCall call={call}>
           <BackgroundFilters showSelector={showBackgroundSelector}>
             <div className="flex w-full h-[calc(100vh-64px)] justify-center items-center relative">
+
+              {isCaptionsOn && captionText && (
+                <div className="fixed bottom-28 left-1/2 -translate-x-1/2 z-[9999] text-center pointer-events-none">
+                  <div className="inline-block bg-black/80 text-white text-xl px-5 py-3 rounded-2xl shadow-lg max-w-[85vw] break-words">
+                    {captionText}
+                  </div>
+                </div>
+              )}
+
+
+
               <div className="flex w-[100vw] items-center justify-center max-w-[1000px]">
                 <CallLayout />
               </div>
@@ -325,6 +343,53 @@ const MeetingRoom = () => {
               >
                 {focusMode ? <XCircle size={20} /> : <FocusIcon size={20} />}
               </button>
+
+              <div className="relative">
+                {/* MAIN CAPTION TOGGLE BUTTON */}
+                <button
+                  onClick={() => setIsCaptionsOn(prev => !prev)}
+                  className={cn(
+                    "w-14 h-14 rounded-full flex items-center justify-center transition-colors",
+                    isCaptionsOn
+                      ? "bg-blue-600 hover:bg-blue-700 text-white"
+                      : "bg-gray-200 hover:bg-gray-300 text-gray-800"
+                  )}
+                  title={isCaptionsOn ? "Turn off captions" : "Turn on captions"}
+                >
+                  <Subtitles size={22} />
+                </button>
+
+                {/* SMALL DROP-DOWN LANGUAGE BUTTON INSIDE */}
+                {isCaptionsOn && <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button
+                      className="absolute -right-1 -bottom-1 w-7 h-7 rounded-full bg-gray-900 hover:bg-gray-800 flex items-center justify-center shadow-lg"
+                      title="Select caption language"
+                    >
+                      <LayoutList size={14} color="white" />
+                    </button>
+                  </DropdownMenuTrigger>
+
+                  <DropdownMenuContent className="w-32">
+                    <DropdownMenuItem onClick={() => {setCaptionLanguage("english");
+                      console.log(captionLanguage);
+
+                    }}>
+                      English
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem onClick={() => {setCaptionLanguage("hindi");
+                      console.log(captionLanguage);
+                      
+                    }}>
+                      Hindi
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>}
+              </div>
+
+
+
 
               {/* Background Filter, Participants, Chat, etc. */}
               {isCameraOn && (
@@ -444,8 +509,7 @@ const MeetingRoom = () => {
                   const token = localStorage.getItem("authToken");
                   try {
                     const res = await fetch(
-                      `${
-                        import.meta.env.VITE_BACKEND_URL
+                      `${import.meta.env.VITE_BACKEND_URL
                       }/api/v1/meetings/add-participants`,
                       {
                         method: "POST",
