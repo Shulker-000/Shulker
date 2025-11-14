@@ -13,7 +13,7 @@ export default function AuthSuccess() {
     const accessToken = params.get("accessToken");
     if (accessToken) {
       fetch(`${import.meta.env.VITE_BACKEND_URL}/api/v1/users/current-user`, {
-        headers: { Authorization: `Bearer ${accessToken}` },
+        headers: { "Authorization": `Bearer ${accessToken}` },
         credentials: "include",
       })
         .then((res) => res.json())

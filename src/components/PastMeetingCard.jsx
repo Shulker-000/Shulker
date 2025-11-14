@@ -28,6 +28,30 @@ const PastMeetingCard = () => {
   const [showAllRecordings, setShowAllRecordings] = useState(false);
   const user = useSelector((state) => state.auth.user);
   const backendUrl = import.meta.env.VITE_BACKEND_URL;
+  const [pollAnswers, setPollAnswers] = useState({});
+
+  // TEMP MOCK POLLS (remove when backend ready)
+  const mockPolls = [
+    {
+      question: "What does FFT stand for?",
+      options: [
+        { option: "Fast Fourier Transform", isCorrect: true },
+        { option: "Frequency Filter Table", isCorrect: false },
+        { option: "Fast Function Tracker", isCorrect: false },
+        { option: "Fourier Function Tool", isCorrect: false },
+      ],
+    },
+    {
+      question: "Which color model is used in digital images?",
+      options: [
+        { option: "RGB", isCorrect: true },
+        { option: "RBY", isCorrect: false },
+        { option: "HSB only", isCorrect: false },
+        { option: "XYZ only", isCorrect: false },
+      ],
+    },
+  ];
+
 
   useEffect(() => {
     const fetchMeetingData = async () => {
@@ -39,13 +63,16 @@ const PastMeetingCard = () => {
 
       try {
         setIsLoading(true);
+        const token = localStorage.getItem("authToken");
 
         const res = await fetch(
           `${backendUrl}/api/v1/meetings/user/${user._id}`,
           {
             method: "GET",
-            headers: { "Content-Type": "application/json" },
-            credentials: "include",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${token}`,
+            },
           }
         );
 
@@ -71,8 +98,10 @@ const PastMeetingCard = () => {
           `${backendUrl}/api/v1/summary/meeting/${meetingId}`,
           {
             method: "GET",
-            headers: { "Content-Type": "application/json" },
-            credentials: "include",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${token}`,
+            },
           }
         );
 
@@ -145,6 +174,9 @@ const PastMeetingCard = () => {
   const { scheduledTime, endedAt, members, recordingUrl, polls, createdBy } =
     meeting;
 
+  const effectivePolls = polls?.length ? polls : mockPolls;
+
+
   const DetailItem = ({ icon: Icon, label, value }) => (
     <div className="flex flex-col p-4">
       <div className="flex items-center text-gray-500 mb-1">
@@ -157,15 +189,15 @@ const PastMeetingCard = () => {
 
   const durationText = endedAt
     ? (() => {
-        const diff = new Date(endedAt) - new Date(scheduledTime);
-        const totalSeconds = Math.floor(diff / 1000);
-        const hours = Math.floor(totalSeconds / 3600);
-        const minutes = Math.floor((totalSeconds % 3600) / 60);
-        const seconds = totalSeconds % 60;
-        if (hours > 0) return `${hours}h ${minutes}m`;
-        if (minutes > 0) return `${minutes}m ${seconds}s`;
-        return `${seconds}s`;
-      })()
+      const diff = new Date(endedAt) - new Date(scheduledTime);
+      const totalSeconds = Math.floor(diff / 1000);
+      const hours = Math.floor(totalSeconds / 3600);
+      const minutes = Math.floor((totalSeconds % 3600) / 60);
+      const seconds = totalSeconds % 60;
+      if (hours > 0) return `${hours}h ${minutes}m`;
+      if (minutes > 0) return `${minutes}m ${seconds}s`;
+      return `${seconds}s`;
+    })()
     : "N/A";
 
   const hostName =
@@ -272,9 +304,8 @@ const PastMeetingCard = () => {
               {summary ? (
                 <>
                   <div
-                    className={`relative overflow-hidden transition-all duration-500 ease-in-out ${
-                      expanded ? "max-h-[1200px]" : "max-h-60"
-                    }`}
+                    className={`relative overflow-hidden transition-all duration-500 ease-in-out ${expanded ? "max-h-[1200px]" : "max-h-60"
+                      }`}
                   >
                     <p className="text-gray-700 whitespace-pre-line leading-loose text-lg">
                       {summary}
@@ -291,7 +322,13 @@ const PastMeetingCard = () => {
                 </>
               ) : (
                 <p className="text-gray-500 italic">
-                  No AI summary available for this meeting.
+                  The quick brown fox jumps over the lazy dog.
+                  My Mum tries to be cool by saying that she likes all the same things that I do.
+                  A purple pig and a green donkey flew a kite in the middle of the night and ended up sunburnt.
+                  Last Friday I saw a spotted striped blue worm shake hands with a legless lizard.
+                  A song can make or ruin a person’s day if they let it get to them.
+                  Sometimes it is better to just walk away from things and go back to them later when you’re in a better frame of mind.
+
                 </p>
               )}
 
@@ -302,9 +339,8 @@ const PastMeetingCard = () => {
                 >
                   {expanded ? "Show Less" : "Read Full Summary"}
                   <ChevronDown
-                    className={`w-4 h-4 ml-2 transition-transform ${
-                      expanded ? "rotate-180" : "rotate-0"
-                    }`}
+                    className={`w-4 h-4 ml-2 transition-transform ${expanded ? "rotate-180" : "rotate-0"
+                      }`}
                   />
                 </button>
               )}
@@ -364,44 +400,73 @@ const PastMeetingCard = () => {
             </div>
 
             {/* Polls (untouched) */}
-            <div>
+            {/* Polls Enhanced (Interactive Mock) */}
+            <div className="bg-white rounded-xl shadow-xl p-8 border-l-8 border-green-600">
               <div className="flex items-center mb-5 text-green-700">
                 <BarChart2 className="w-6 h-6 mr-3 text-green-600" />
-                <h2 className="text-2xl font-bold text-gray-900">
-                  Poll Analysis
-                </h2>
+                <h2 className="text-2xl font-bold text-gray-900">Poll Analysis</h2>
               </div>
-              {polls && polls.length > 0 ? (
-                <div className="space-y-6">
-                  {polls.map((poll, idx) => (
-                    <div key={idx}>
-                      <p className="font-bold text-lg text-gray-800 mb-4 pb-2">
-                        Q{idx + 1}: {poll.question}
-                      </p>
-                      <div className="space-y-2">
-                        {poll.options.map((opt, i) => (
-                          <div
-                            key={i}
-                            className="flex justify-between items-center text-gray-700 text-base py-1"
-                          >
-                            <span className="font-medium w-3/4">
-                              {opt.option}
-                            </span>
-                            <span className="font-extrabold text-green-700 bg-green-100 px-3 py-1 rounded-full text-sm">
-                              {opt.votes} Votes
-                            </span>
-                          </div>
-                        ))}
+
+              {effectivePolls && effectivePolls.length > 0 ? (
+                <div className="space-y-10">
+                  {effectivePolls.map((poll, pollIndex) => {
+                    const selected = pollAnswers[pollIndex];
+
+                    return (
+                      <div key={pollIndex} className="p-5 rounded-lg border border-gray-200 bg-gray-50">
+                        <p className="font-bold text-lg text-gray-900 mb-4">
+                          Q{pollIndex + 1}: {poll.question}
+                        </p>
+
+                        <div className="grid grid-cols-2 gap-3">
+                          {poll.options.map((opt, optIndex) => {
+                            const isCorrect = opt.isCorrect;
+                            const isSelected = selected === optIndex;
+
+                            return (
+                              <button
+                                key={optIndex}
+                                onClick={() => {
+                                  if (selected == null)
+                                    setPollAnswers(prev => ({ ...prev, [pollIndex]: optIndex }));
+                                }}
+                                className={`
+                      w-full text-left px-4 py-3 rounded-lg border transition flex justify-between items-center
+                      ${selected == null ? "hover:bg-gray-200" : ""}
+                      ${isSelected
+                                    ? isCorrect
+                                      ? "bg-green-100 border-green-500"
+                                      : "bg-red-100 border-red-500"
+                                    : "bg-white border-gray-300"
+                                  }
+                    `}
+                              >
+                                <span className="font-medium text-gray-800">{opt.option}</span>
+
+                                {isSelected && (
+                                  <span
+                                    className={`text-xs font-bold px-3 py-1 rounded-full ${isCorrect
+                                        ? "bg-green-600 text-white"
+                                        : "bg-red-600 text-white"
+                                      }`}
+                                  >
+                                    {isCorrect ? "Correct" : "Wrong"}
+                                  </span>
+                                )}
+                              </button>
+                            );
+                          })}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               ) : (
-                <p className="text-gray-500 italic">
-                  No interactive poll data recorded.
-                </p>
+                <p className="text-gray-500 italic">No interactive poll data recorded.</p>
               )}
             </div>
+
+
           </div>
         </div>
       </div>

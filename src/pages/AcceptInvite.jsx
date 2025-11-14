@@ -44,7 +44,7 @@ const AcceptInvite = () => {
           const errorData = await response.json();
           throw new Error(errorData.message || "Failed to accept invitation");
         }
-        toast.success("Invitation accepted! Joining meeting...");
+        toast.success("Invitation accepted!");
         navigate(`/`);
       } catch (error) {
         toast.error(error.message);
